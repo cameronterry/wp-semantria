@@ -12,7 +12,7 @@ WordPress plugin for integrating with Semantria to generate custom taxonomies.
 
 == Description ==
 
-Simple plugin that allows you to connect to your [Semantria](http://semantria.com/) to generate tags and custom taxonomies for your Posts.
+Simple plugin that allows you to connect to your [Semantria](http://semantria.com/) API account to WordPress to generate tags and custom taxonomies for your Posts.
 
 == Installation ==
 1. Upload the files to the '/wp-content/plugins/wordpress-semantria/' directory.
