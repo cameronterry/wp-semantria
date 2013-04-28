@@ -1,5 +1,5 @@
 
-	function wordpress_semantria_ajax_handler( data ) {
+	function wp_semantria_ajax_handler( data ) {
 		if ( data == 'finished' ) {
 			window.location.href = window.location.href;
 			return;
@@ -20,7 +20,7 @@
 					action: 'wordpress_semantria_ingest_all',
 					offset: offset
 				},
-				wordpress_semantria_ajax_handler,
+				wp_semantria_ajax_handler,
 				'text'
 			);
 		}
@@ -34,7 +34,7 @@
 				
 				jQuery( this ).attr( 'disabled', 'disabled' );
 				
-				wordpress_semantria_ajax_handler( 0 );
+				wp_semantria_ajax_handler( 0 );
 			} );
 		} );
 	} )();
