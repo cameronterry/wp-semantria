@@ -8,6 +8,7 @@ Author: Cameron Terry
 Author URI: https://github.com/cameronterry/
  */
 
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	require_once( dirname(__FILE__) . '/semantria/session.php' );
 	require_once( dirname(__FILE__) . '/semantria/jsonserializer.php' );
 	
