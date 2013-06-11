@@ -126,7 +126,7 @@ Author URI: https://github.com/cameronterry/
 			
 			$args = array(
 				'labels'                     => $labels,
-				'hierarchical'               => true,
+				'hierarchical'               => false,
 				'public'                     => true,
 				'show_ui'                    => true,
 				'show_tagcloud'              => true
