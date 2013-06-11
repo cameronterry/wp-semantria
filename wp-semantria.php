@@ -3,7 +3,7 @@
 Plugin Name: WP Semantria
 Plugin URI: https://github.com/cameronterry/wp-semantria
 Description: This plugin connects with your Semantria API account to create new taxonomies from unstructure Post and Page content.  In addition, each post / taxonomy link contains a sentiment score so you can pick additional stories that are positive or negative.
-Version: 0.1.0
+Version: 0.1.1
 Author: Cameron Terry
 Author URI: https://github.com/cameronterry/
  */
@@ -83,10 +83,6 @@ Author URI: https://github.com/cameronterry/
 		";
 		
 		dbDelta( $sql );
-		
-		if ( wp_next_scheduled( 'semantria_cron_job' ) === false ) {
-			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
-		}
 	}
 	
 	function semantria_deactivation_hook() {
@@ -185,8 +181,7 @@ Author URI: https://github.com/cameronterry/
 		" );
 		
 		if ( count( $post_ids ) == 0 ) {
-			echo( 'finished' );
-			update_option( 'semantria_ingestion_complete', 'yes' );
+			semantria_ingestion_complete();
 		}
 		else if ( count( $post_ids ) < $count ) {
 			foreach( $post_ids as $post_id ) {
@@ -195,8 +190,7 @@ Author URI: https://github.com/cameronterry/
 				}
 			}
 			
-			echo( 'finished' );
-			update_option( 'semantria_ingestion_complete', 'yes' );
+			semantria_ingestion_complete();
 		}
 		else {
 			foreach( $post_ids as $post_id ) {
@@ -210,6 +204,15 @@ Author URI: https://github.com/cameronterry/
 		
 		wp_cache_flush();
 		die();
+	}
+	
+	function semantria_ingestion_complete() {
+		echo( 'finished' );
+		update_option( 'semantria_ingestion_complete', 'yes' );
+		
+		if ( wp_next_scheduled( 'semantria_cron_job' ) === false ) {
+			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+		}
 	}
 	
 	function semantria_cron_job() {
