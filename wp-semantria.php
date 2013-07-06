@@ -19,7 +19,7 @@ Author URI: https://github.com/cameronterry/
 	/**
 	 * Setup the Global variable for the Semantria Session object.
 	 */
-	if ( get_option( 'semantria_consumer_key', null ) !== null ) {
+	if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_consumer_secret', null ) !== null ) {
 		$GLOBALS['semantria_session'] = new Session( get_option( 'semantria_consumer_key' ), get_option( 'semantria_consumer_secret' ) , new JsonSerializer(), 'WordPress' );
 	}
 	
@@ -211,7 +211,7 @@ Author URI: https://github.com/cameronterry/
 		update_option( 'semantria_ingestion_complete', 'yes' );
 		
 		if ( wp_next_scheduled( 'semantria_cron_job' ) === false ) {
-			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+			//wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
 		}
 	}
 	
