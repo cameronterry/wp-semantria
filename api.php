@@ -66,7 +66,7 @@
 		}
 		else {
 			$term_details = get_term_by( 'name', $term, $taxonomy );
-			$set_term_result = wp_set_post_terms( $post_id, $term_details->term_id, $taxonomy, true );
+			$set_term_result = wp_set_post_terms( $post_id, $term_details->name, $taxonomy, true );
 			$term_id = $term_details->term_id;
 		}
 		
@@ -239,21 +239,25 @@
 	function semantria_process_document( $post_id, $semantria_queue_id ) {
 		global $wpdb;
 		
-		$table_name = $wpdb->prefix . 'semantria_queue';
-		$data = semantria_get_data( $semantria_queue_id );
-		
-		if ( empty( $data ) == false ) {
-			if ( array_key_exists( 'themes', $data ) && empty( $data['themes'] ) == false ) {
-				semantria_process_terms( $post_id, $data['themes'], true );
-			}
-			
-			if ( array_key_exists( 'entities', $data ) && empty( $data['entities'] ) == false ) {
-				semantria_process_terms( $post_id, $data['entities'], false );
-			}
-			
-			semantria_queue_complete( $semantria_queue_id );
-		}
+        $data = semantria_get_data( $semantria_queue_id );
+        
+        if ( empty( $data ) === false ) {
+            semantria_process_document_data( $post_id, $data );
+            semantria_queue_complete( $semantria_queue_id );
+        }
 	}
+    
+    function semantria_process_document_data( $post_id, $data ) {
+        if ( array_key_exists( 'themes', $data ) && empty( $data['themes'] ) == false ) {
+            semantria_process_terms( $post_id, $data['themes'], true );
+        }
+        
+        if ( array_key_exists( 'entities', $data ) && empty( $data['entities'] ) == false ) {
+            semantria_process_terms( $post_id, $data['entities'], false );
+        }
+        
+        semantria_queue_complete( $semantria_queue_id );
+    }
 	
 	function semantria_process_queue() {
 		global $wpdb;
