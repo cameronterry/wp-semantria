@@ -11,7 +11,7 @@
 	}
 	
 	function semantria_admin_menu() {
-        add_menu_page( 'WP Semantria', 'WP Semantria', 'manage_options', 'semantria-queue', 'semantria_queue_page', plugins_url( 'wp-semantria/assets/img/icon-16x16.png' ) );
+        add_menu_page( 'WP Semantria', 'WP Semantria', 'manage_options', 'semantria-queue', 'semantria_queue_page', plugins_url( '/assets/img/icon-16x16.png', __FILE__ ) );
         add_submenu_page( 'semantria-queue', 'Settings', 'Settings', 'manage_options', 'semantria-settings', 'semantria_settings_page' );
 		//add_options_page( 'Semantria Settings', 'Semantria Settings', 'manage_options', 'semantria-settings', 'semantria_settings_page' );
 	}
@@ -27,16 +27,29 @@
     function semantria_queue_page() {
         global $wpdb;
         
+        $page_url = admin_url( 'admin.php?page=semantria-queue' );
+        $semantria_status = '';
+        
+        if ( isset( $_GET['status'] ) ) {
+            $semantria_status = $_GET['status'];
+            
+            if ( semantria_status_is_valid( $semantria_status ) === false ) {
+                wp_die( 'Invalid Semantria Queue Status.' );
+            }
+        }
+        else {
+            $semantria_status = 'queued';
+        }
+        
         $semantria_table = $wpdb->prefix . 'semantria_queue';
-        $results_total = $wpdb->get_var( "SELECT COUNT(semantria_id) FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value" );
+        $results_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(semantria_id) FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = %s", $semantria_status ) );
         
         $per_page = 40;
         $num_pages = ceil( $results_total / $per_page );
         $current_page = ( $_GET['paged'] > 0 ? intval( $_GET['paged'] ) : 1 );
-        $pagination_url = 'admin.php?page=semantria-queue';
         
         $pagination = paginate_links( array(
-            'base' => $pagination_url . '%_%',
+            'base' => $page_url . '%_%',
             'format' => '&paged=%#%',
             'total' => $num_pages,
             'current' => $current_page
@@ -44,32 +57,38 @@
         
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT p.post_title, p.post_date, p.post_type, pm.post_id, qt.status, qt.semantria_id, qt.added, qt.closed
             FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+            WHERE qt.status = %s
             ORDER BY p.post_date DESC LIMIT %d, %d",
+            $semantria_status,
             ( $current_page - 1 ) * $per_page, $per_page
         ) );
         
         echo( '
-            <div class="wrap">
+            <div class="wrap wp-semantria-content">
                 <div class="icon32">
                     <img alt="" src="' . plugins_url( 'wp-semantria/assets/img/icon-32x32.png' ) . '" />
                     <br />
                 </div>
-				<h2>WP Semantria Queue Log</h2>
+				<h2>WP Semantria Queue</h2>
                 <ul class="subsubsub">
                     <li>
-                        Queue
+                        <a ' . ( $semantria_status == 'queued' ? 'class="current"' : '' ) . ' href="' . add_query_arg( 'status', 'queued', $page_url ) . '">Queued</a>
                         |
                     </li>
                     <li>
-                        Processing
+                        <a ' . ( $semantria_status == 'processing' ? 'class="current"' : '' ) . ' href="' . add_query_arg( 'status', 'processing', $page_url ) . '">Processing</a>
                         |
                     </li>
                     <li>
-                        Expired
+                        <a ' . ( $semantria_status == 'expired' ? 'class="current"' : '' ) . ' href="' . add_query_arg( 'status', 'expired', $page_url ) . '">Expired</a>
                         |
                     </li>
                     <li>
-                        Completed
+                        <a ' . ( $semantria_status == 'complete' ? 'class="current"' : '' ) . ' href="' . add_query_arg( 'status', 'complete', $page_url ) . '">Completed</a>
+                        |
+                    </li>
+                    <li>
+                        <a ' . ( $semantria_status == 'stopped' ? 'class="current"' : '' ) . ' href="' . add_query_arg( 'status', 'stopped', $page_url ) . '">Stopped</a>
                     </li>
                 </ul>
                 <div class="tablenav">
@@ -78,7 +97,7 @@
                         ' . $pagination . '
                     </div>
                 </div>
-				<table cellspacing="0" class="wp-list-table widefat fixed posts">
+				<table cellspacing="0" class="wp-list-table widefat fixed wp-semantria-table">
                     <thead>
                         <tr>
                             <th class="check-column">
@@ -97,29 +116,49 @@
                     <tbody>
         ' );
         
+        if ( empty( $results ) ) {
+            echo( '
+                <tr>
+                    <td colspan="8" style="text-align:center;">
+                        <strong>No queue records found.</strong>
+                    </td>
+                </tr>
+            ' );
+        }
+        
         foreach ( $results as $row ) {
             $post_type_obj = get_post_type_object( $row->post_type );
             
             echo( '
-                <tr valign="top">
+                <tr id="row-' . $row->post_id . '" valign="top">
                     <th scope="row" class="check-column">
                         <label class="screen-reader-text" for="cb-select-all-' . $row->post_id . '">' . $row->post_title . '</label>
                         <input id="cb-select-' . $row->post_id . '" name="queue[]" type="checkbox" value="' . $row->post_id . '" />
                     </th>
+                    <td>
+                        <strong>' . $row->post_title . '</strong>
+                        <div class="row-actions">
             ' );
             
-            echo( '
-                <td>
-                    <strong>' . $row->post_title . '</strong>
-                    <div class="row-actions">
-                        <a href="#">Evaluate</a>
-                        |
-                        <span class="trash"><a href="#">Hold</a></span>
-                    </div>
-                </td>
-            ' );
+            if ( $semantria_status == 'queued' ) {
+                printf( '
+                    <a class="evaluate" data-semantria-id="%1$s" data-post-id="%2$s" href="#">Evalulate</a>
+                    | <a class="update-status" data-semantria-id="%1$s" data-next-status="processing" data-post-id="%2$s" href="#">Update Status</a>
+                    | <span class="trash"><a href="#">Stop</a></span>',
+                    $row->semantria_id,
+                    $row->post_id
+                );
+            }
+            else if ( $semantria_status == 'processing' ) {
+                printf( '<a class="evaluate" data-semantria-id="%s" data-post-id="%s" href="#">Evalulate</a>', $row->semantria_id, $row->post_id );
+            }
+            else if ( $semantria_status == '' ) {}
+            else if ( $semantria_status == '' ) {}
+            else if ( $semantria_status == '' ) {}
             
             echo( '
+                        </div>
+                    </td>
                     <td>' . $post_type_obj->labels->singular_name . '</td>
                     <td>' . $row->post_date . '</td>
                     <td>' . $row->semantria_id . '</td>
@@ -133,7 +172,26 @@
         echo( '
                     </tbody>
                 </table>
-                <div></div>
+                <div id="pnlSemantriaModal" class="semantria-modal">
+                    <div class="semantria-modal-content">
+                        <div class="post">
+                            <div class="inner" rel="post"></div>
+                        </div>
+                        <div class="options">
+                            <div class="inner">
+                                <div rel="options"></div>
+                                <p class="buttons">
+                                    <button class="button close-modal">Close</button>
+                                    <button class="button button-primary">Apply Terms</button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="pnlLoading" class="loader">
+                        <img alt="Loading" src="' . plugins_url( 'wp-semantria/assets/img/loader-48x48.gif' ) . '" />
+                    </div>
+                </div>
+                <div id="pnlSemantriaBackdrop" class="semantria-modal-backdrop"></div>
             </div>
         ' );
     }

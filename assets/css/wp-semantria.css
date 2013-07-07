@@ -1,0 +1,86 @@
+
+    .semantria-modal {
+        bottom:30px;
+        color:#333333;
+        display:none;
+        left:30px;
+        position:fixed;
+        right:30px;
+        top:30px;
+        z-index:160000;
+    }
+        
+        .semantria-modal .semantria-modal-content {
+            background:#FFFFFF;
+            bottom:0px;
+            color:#333333;
+            left:0px;
+            min-height:300px;
+            overflow:auto;
+            position:absolute;
+            right:0px;
+            top:0px;
+        }
+            
+            .semantria-modal .semantria-modal-content .options {
+                bottom:0px;
+                overflow:auto;
+                padding-left:14px;
+                position:absolute;
+                right:0px;
+                top:0px;
+                width:286px;
+            }
+            
+                .semantria-modal .semantria-modal-content .options .buttons {
+                    text-align:right;
+                }
+                
+                .semantria-modal .semantria-modal-content .options .inner {
+                    padding:0 14px;
+                }
+            
+            .semantria-modal .semantria-modal-content .post {
+                border-right:1px solid #D9D9D9;
+                bottom:0px;
+                box-shadow:inset -6px 0 6px -6px rgba(0,0,0,0.2);
+                float:left;
+                left:0px;
+                overflow:auto;
+                position:absolute;
+                right:286px;
+                top:0px;
+            }
+            
+                .semantria-modal .semantria-modal-content .post .inner {
+                    display:none;
+                    margin:35px auto 0 auto;
+                    width:768px;
+                }
+            
+            .semantria-modal .semantria-modal-content h3 {
+                color:#333333;
+                font-family:"HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",sans-serif;
+                font-size:23px;
+                padding:9px 15px 4px 0;
+            }
+            
+            .semantria-modal .semantria-modal-content p {
+                color:#464646;
+                font-family:"HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",sans-serif;
+                font-size:14px;
+                line-height:24px;
+            }
+        
+    .semantria-modal-backdrop {
+        background:#000000;
+        bottom:0px;
+        display:none;
+        left:0px;
+        min-height:360px;
+        opacity:0.7;
+        position:fixed;
+        right:0px;
+        top:0px;
+        z-index:159900;
+    }

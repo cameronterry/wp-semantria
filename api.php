@@ -176,6 +176,19 @@
 		}
 	}
 	
+    function semantria_get_data( $semantria_queue_id ) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'semantria_queue';
+        $data = $wpdb->get_var( $wpdb->prepare( "SELECT semantria_data FROM $table_name WHERE semantria_id = %s", $semantria_queue_id ) );
+        
+        if ( $data == null ) {
+            return null;
+        }
+        
+		return unserialize( $data );
+    }
+    
 	/**
 	 * Connects to the Semantria servers to retrieve a single document
 	 * which was sent for analysis.
@@ -185,7 +198,7 @@
 	 * @param string $semantria_queue_id Semantria Queue ID for making the API call to Semantria.
 	 * @uses semantria_process_terms A WordPress-Semantria plugin API call to take the processed entities and add them to the post.
 	 */
-	function semantria_get_document( $post_id, $semantria_queue_id, $type ) {
+	function semantria_get_document( $post_id, $semantria_queue_id, $type = 'document' ) {
 		global $semantria_session, $wpdb;
 		
 		if ( $semantria_queue_id !== '' ) {
@@ -216,12 +229,18 @@
 			}
 		}
 	}
+    
+    function semantria_get_queue_item( $semantria_queue_id ) {
+        global $wpdb;
+        
+        
+    }
 	
 	function semantria_process_document( $post_id, $semantria_queue_id ) {
 		global $wpdb;
 		
 		$table_name = $wpdb->prefix . 'semantria_queue';
-		$data = unserialize( $wpdb->get_var( $wpdb->prepare( "SELECT semantria_data FROM $table_name WHERE semantria_id = %s", $semantria_queue_id ) ) );
+		$data = semantria_get_data( $semantria_queue_id );
 		
 		if ( empty( $data ) == false ) {
 			if ( array_key_exists( 'themes', $data ) && empty( $data['themes'] ) == false ) {
@@ -334,5 +353,9 @@
 			return null;
 		}
 	}
+    
+    function semantria_status_is_valid( $status ) {
+        return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped' ) );
+    }
 
 ?>

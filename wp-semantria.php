@@ -13,6 +13,7 @@ Author URI: https://github.com/cameronterry/
 	require_once( dirname(__FILE__) . '/semantria/jsonserializer.php' );
 	
 	require_once( dirname(__FILE__) . '/api.php' );
+	require_once( dirname(__FILE__) . '/api-ajax.php' );
 	require_once( dirname(__FILE__) . '/inflector.php' );
 	require_once( dirname(__FILE__) . '/interface.php' );
 	
@@ -20,13 +21,17 @@ Author URI: https://github.com/cameronterry/
 	 * Setup the Global variable for the Semantria Session object.
 	 */
 	if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_consumer_secret', null ) !== null ) {
-		$GLOBALS['semantria_session'] = new Session( get_option( 'semantria_consumer_key' ), get_option( 'semantria_consumer_secret' ) , new JsonSerializer(), 'WordPress' );
+		$GLOBALS['semantria_session'] = new \Semantria\Session( get_option( 'semantria_consumer_key' ), get_option( 'semantria_consumer_secret' ) , null, 'WordPress' );
 	}
 	
 	function semantria_admin_enqueue( $hook_suffix ) {
-		if ( $hook_suffix == 'settings_page_semantria-settings' ) {
-			wp_register_script( 'wp-semantria', plugins_url( 'wp-semantria.js', __FILE__ ), array( 'jquery' ) );
-			wp_enqueue_script( 'wp-semantria' );
+        if ( $hook_suffix == 'settings_page_semantria-settings' || $hook_suffix == 'toplevel_page_semantria-queue' ) {
+			wp_register_script( 'mustache-js', '//cdnjs.cloudflare.com/ajax/libs/mustache.js/0.7.2/mustache.min.js' );
+            wp_register_script( 'wp-semantria', plugins_url( 'wp-semantria.js', __FILE__ ), array( 'jquery', 'mustache-js' ) );
+            wp_register_style( 'wp-semantria-css', plugins_url( 'assets/css/wp-semantria.css', __FILE__ ) );
+            
+            wp_enqueue_script( 'wp-semantria' );
+            wp_enqueue_style( 'wp-semantria-css' );
 		}
 	}
 	
@@ -163,49 +168,6 @@ Author URI: https://github.com/cameronterry/
 		$wpdb->query( $wpdb->prepare( "DELETE FROM $table_name WHERE object_id IN(%s)", implode( $terms_remove_ids ) ) );
 	}
 	
-	function semantria_ajax_ingest_all() {
-		global $wpdb;
-		
-		set_time_limit( 600 );
-		
-		$offset = intval( $_POST['offset'] );
-		$count = 100;
-		
-		$post_ids = $wpdb->get_col( "
-			SELECT ID 
-			FROM $wpdb->posts 
-			WHERE post_status LIKE 'publish'
-				AND post_type IN('post', 'page')
-			ORDER BY ID
-			LIMIT $offset, $count
-		" );
-		
-		if ( count( $post_ids ) == 0 ) {
-			semantria_ingestion_complete();
-		}
-		else if ( count( $post_ids ) < $count ) {
-			foreach( $post_ids as $post_id ) {
-				if ( get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
-					semantria_commit_document( $post_id );
-				}
-			}
-			
-			semantria_ingestion_complete();
-		}
-		else {
-			foreach( $post_ids as $post_id ) {
-				if ( get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
-					semantria_commit_document( $post_id );
-				}
-			}
-			
-			echo( $offset + $count );
-		}
-		
-		wp_cache_flush();
-		die();
-	}
-	
 	function semantria_ingestion_complete() {
 		echo( 'finished' );
 		update_option( 'semantria_ingestion_complete', 'yes' );
@@ -246,8 +208,6 @@ Author URI: https://github.com/cameronterry/
 		
 		add_action( 'admin_init', 'semantria_admin_init' );
 		add_action( 'admin_menu', 'semantria_admin_menu' );
-		
-		add_action( 'wp_ajax_wordpress_semantria_ingest_all', 'semantria_ajax_ingest_all' );
 		
 		add_action( 'admin_enqueue_scripts', 'semantria_admin_enqueue' );
 	}
