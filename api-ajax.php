@@ -20,12 +20,12 @@
         $data['article'] = array();
         
         if ( empty( $post_data ) === false ) {
+            $data['article']['post_id'] = $post_data->post_id;
             $data['article']['title'] = $post_data->post_title;
             $data['article']['body'] = apply_filters( 'the_content', $post_data->post_content );
         }
         
         echo( json_encode( $data ) );
-        
         die();
     }
     

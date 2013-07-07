@@ -285,7 +285,7 @@
 		foreach ( $data as $entity ) {
 			if ( array_key_exists( 'entity_type', $entity ) || $is_tag ) {
 				
-				if ( $is_tag == false && $entity['entity_type'] == 'Quote' ) {
+				if ( $is_tag == false && strtolower( $entity['entity_type'] ) == 'quote' ) {
 					update_post_meta( $post_id, 'semantria_quote', $entity['title'] );
 					continue;
 				}

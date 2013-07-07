@@ -2,14 +2,16 @@
     var wpsemantria = {
         modal : {
             current : {
-                post_id : '',
-                semantria_id : ''
+                data : null,
             },
             bind : function ( json ) {
+                wpsemantria.modal.current.data = json;
+                
                 /**
                  * Get the basic article onto the screen.
                  */
-                jQuery( 'div[rel="post"]', '#pnlSemantriaModal' ).html( Mustache.to_html( '<h3>{{title}}</h3>{{{body}}}', json.article ) ).fadeIn();
+                var Template = Handlebars.compile( '<h3>{{title}}</h3>{{{body}}}' );
+                jQuery( 'div[rel="post"]', '#pnlSemantriaModal' ).html( Template( json.article ) ).fadeIn();
                 
                 /**
                  * Now we grab the bits of Semantria which are used in the WordPress plugin
@@ -35,7 +37,8 @@
                 console.log( json );
             },
             bind_option : function ( data ) {
-                jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).append( Mustache.to_html( '<h4>{{item_title}}</h4><ul>{{#items}}<li><label><input name="{{item_type}}[]" type="checkbox" value="{{title}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#label}}({{label}}){{/label}}</label></li>{{/items}}</ul>', data ) );
+                var Template = Handlebars.compile( '<h4>{{item_title}}</h4><ul>{{#items}}<li><label><input name="{{item_type}}[]" type="checkbox" value="{{title}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
+                jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).append( Template( data ) );
             },
             hide : function () {
                 jQuery( '#pnlSemantriaBackdrop' ).fadeOut();
