@@ -152,7 +152,9 @@
             else if ( $semantria_status == 'processing' ) {
                 printf( '<a class="evaluate" data-semantria-id="%s" data-post-id="%s" href="#">Evalulate</a>', $row->semantria_id, $row->post_id );
             }
-            else if ( $semantria_status == '' ) {}
+            else if ( $semantria_status == 'complete' ) {
+                printf( '<a class="evaluate" data-semantria-id="%s" data-post-id="%s" href="#">Review</a>', $row->semantria_id, $row->post_id );
+            }
             else if ( $semantria_status == '' ) {}
             else if ( $semantria_status == '' ) {}
             
@@ -182,7 +184,7 @@
                                 <div rel="options"></div>
                                 <p class="buttons">
                                     <button class="button close-modal">Close</button>
-                                    <button class="button button-primary">Apply Terms</button>
+                                    <button class="button button-primary save-modal">Apply Terms</button>
                                 </p>
                             </div>
                         </div>

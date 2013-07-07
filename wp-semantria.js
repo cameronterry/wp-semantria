@@ -2,7 +2,7 @@
     var wpsemantria = {
         modal : {
             current : {
-                data : null,
+                data : null
             },
             bind : function ( json ) {
                 wpsemantria.modal.current.data = json;
@@ -20,24 +20,18 @@
                 if ( json.entities ) {
                     wpsemantria.modal.bind_option( { item_title : 'Entities', item_type : 'entity', items : json.entities } );
                     
-                    jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"]', '#pnlSemantriaModal' ).change( function () {
-                        if ( this.checked ) {
-                            //jQuery( 'div[rel="post"] p', '#pnlSemantriaModal' ).highlight( jQuery( this ).val() );
-                        }
-                        else {
-                            //jQuery( 'div[rel="post"] p', '#pnlSemantriaModal' ).highlight( jQuery( this ).val() );
-                        }
-                    } );
+                    jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"]', '#pnlSemantriaModal' ).change( function () {} );
                 }
                 
                 if ( json.themes ) {
                     wpsemantria.modal.bind_option( { item_title : 'Themes (Tags)', item_type : 'theme', items : json.themes } );
                 }
                 
+                wpsemantria.modal.select_options();
                 console.log( json );
             },
             bind_option : function ( data ) {
-                var Template = Handlebars.compile( '<h4>{{item_title}}</h4><ul>{{#items}}<li><label><input name="{{item_type}}[]" type="checkbox" value="{{title}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
+                var Template = Handlebars.compile( '<h4>{{item_title}}</h4><ul>{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
                 jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).append( Template( data ) );
             },
             hide : function () {
@@ -49,7 +43,59 @@
                 jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).html( '' );
                 
                 jQuery( '#pnlLoading', '#pnlSemantriaModal' ).css( 'display', 'block' );
+            },
+            save : function () {
+                /**
+                 * Perform a deep copy of the current data retrieved from the Semantria
+                 * Queue at the start.
+                 */
+                var selected = jQuery.extend( true, {}, wpsemantria.modal.current.data );
                 
+                /**
+                 * Filter out the Entities if there is any.
+                 */
+                if ( selected.entities ) {
+                    selected.entities = jQuery.grep( selected.entities, function ( obj, index ) {
+                        return jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' );
+                    } );
+                }
+                
+                /**
+                 * Filter out the Themes if there is any.
+                 */
+                if ( selected.themes ) {
+                    selected.themes = jQuery.grep( selected.themes, function ( obj, index ) {
+                        return jQuery( 'div[rel="options"] input[name="theme[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' );
+                    } );
+                }
+                
+                jQuery.post(
+                    ajaxurl,
+                    {
+                        action: 'wp_semantria_save',
+                        data : selected
+                    },
+                    function ( data ) {
+                        wpsemantria.modal.hide();
+                        wpsemantria.modal.reset();
+                    },
+                    'text'
+                );
+            },
+            select_options : function () {
+                var terms = wpsemantria.modal.current.data.article.terms;
+                
+                if ( terms.semantria ) {
+                    for ( var i = 0; i < terms.semantria.length; ++i ) {
+                        jQuery( 'input[type="checkbox"][data-title="' + terms.semantria[i].name + '"]', 'div.semantria-modal-content > .options > .inner' ).prop( 'checked', true );
+                    }
+                }
+                
+                if ( terms.post_tag ) {
+                    for ( var i = 0; i < terms.post_tag.length; ++i ) {
+                        jQuery( 'input[type="checkbox"][data-title="' + terms.post_tag[i].name + '"]', 'div.semantria-modal-content > .options > .inner' ).prop( 'checked', true );
+                    }
+                }
             },
             show : function () {
                 jQuery( '#pnlSemantriaBackdrop' ).fadeIn();
@@ -161,6 +207,13 @@
 				e.stopPropagation();
                 
                 wpsemantria.modal.hide();
+            } );
+            
+            $( 'button.save-modal', '#pnlSemantriaModal' ).click( function ( e ) {
+                e.preventDefault();
+				e.stopPropagation();
+                
+                wpsemantria.modal.save();
             } );
 		} );
 	} )( jQuery );

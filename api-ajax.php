@@ -20,9 +20,35 @@
         $data['article'] = array();
         
         if ( empty( $post_data ) === false ) {
-            $data['article']['post_id'] = $post_data->post_id;
+            $data['article']['post_id'] = $post_data->ID;
             $data['article']['title'] = $post_data->post_title;
             $data['article']['body'] = apply_filters( 'the_content', $post_data->post_content );
+            $data['article']['terms'] = array();
+            $data['article']['terms']['semantria'] = array();
+            
+            /**
+             * It would seem the only way to do this is to grab every available taxonomy and then
+             * look to see if the post has any.  Yes!  Very inefficient but the Codex don't lie!!
+             * 
+             * http://codex.wordpress.org/Function_Reference/get_the_terms
+             */
+            $available_taxonomies = get_object_taxonomies( $post_data->post_type );
+            
+            if ( empty( $available_taxonomies ) === false ) {
+                foreach ( $available_taxonomies as $taxonomy ) {
+                    if ( strrpos( $taxonomy, 'semantria-' ) !== false ) {
+                        $terms_data = get_the_terms( $post_data->ID, $taxonomy );
+                        
+                        if ( $terms_data !== false ) {
+                            $data['article']['terms']['semantria'] = array_merge( $data['article']['terms']['semantria'], $terms_data );
+                        }
+                    }
+                    else {
+                        $terms_data = get_the_terms( $post_data->ID, $taxonomy );
+                        $data['article']['terms'][$taxonomy] = ( $terms_data === false ? array() : $terms_data );
+                    }
+                }
+            }
         }
         
         echo( json_encode( $data ) );
@@ -30,31 +56,21 @@
     }
     
     /**
-     * Progresses a Queue record from one part of the Semantria process to the
-     * next part - so for instance a Queued document will need to make another
-     * call to Semantria in order to retrieve the Entities and Topics.
-     *
-     * The name is a little misleading as it implies it will update the status
-     * field on the table - but in fact it will execute the processes around
-     * a record moving from one step to the next.
+     * 
      */
-    function semantria_ajax_update_status() {
-        $semantria_queue_id = $_POST['semantria_id'];
-        $post_id = $_POST['post_id'];
-        $new_status = $_POST['new_status'];
-        $echo_value = 'unable';
+    function semantria_ajax_save() {
+        $data = $_POST['data'];
         
-        if ( semantria_status_is_valid( $new_status ) === false ) {
+        if ( empty( $data ) === false ) {
+            semantria_process_document_data( $data['article']['post_id'], $data );
+            semantria_queue_complete( $data['id'] );
+            
+            echo( 'done' );
+        }
+        else {
             echo( 'error' );
-            die();
         }
         
-        if ( $new_status == 'processing' ) {
-            semantria_get_document( $post_id, $semantria_queue_id );
-            $echo_value = 'done';
-        }
-        
-        echo( $echo_value );
         die();
     }
     
@@ -110,9 +126,39 @@
 		die();
 	}
     
+    /**
+     * Progresses a Queue record from one part of the Semantria process to the
+     * next part - so for instance a Queued document will need to make another
+     * call to Semantria in order to retrieve the Entities and Topics.
+     *
+     * The name is a little misleading as it implies it will update the status
+     * field on the table - but in fact it will execute the processes around
+     * a record moving from one step to the next.
+     */
+    function semantria_ajax_update_status() {
+        $semantria_queue_id = $_POST['semantria_id'];
+        $post_id = $_POST['post_id'];
+        $new_status = $_POST['new_status'];
+        $echo_value = 'unable';
+        
+        if ( semantria_status_is_valid( $new_status ) === false ) {
+            echo( 'error' );
+            die();
+        }
+        
+        if ( $new_status == 'processing' ) {
+            semantria_get_document( $post_id, $semantria_queue_id );
+            $echo_value = 'done';
+        }
+        
+        echo( $echo_value );
+        die();
+    }
+    
     if ( is_admin() ) {
         add_action( 'wp_ajax_wp_semantria_ingest_all', 'semantria_ajax_ingest_all' );
         add_action( 'wp_ajax_wp_semantria_get', 'semantria_ajax_get' );
+        add_action( 'wp_ajax_wp_semantria_save', 'semantria_ajax_save' );
         add_action( 'wp_ajax_wp_semantria_update_status', 'semantria_ajax_update_status' );
     }
     
