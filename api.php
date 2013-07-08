@@ -175,6 +175,59 @@
 			);
 		}
 	}
+    
+    /**
+     * Retrieves the processed Semantria object and removes all Entities
+     * and Themes which may have been linked to the post.
+     * 
+     * Please note this method will only remove items which were returned
+     * by Semantria.  Any user terms added outside of Semantria's analysis
+     * WILL remain.
+     */
+    function semantria_clear_all_terms( $post_id, $semantria_queue_id ) {
+        global $wpdb;
+        
+        $entity_term_ids = array();
+        $theme_term_ids = array();
+        $data = semantria_get_data( $semantria_queue_id );
+        $inflector = new Inflector();
+        
+        if ( empty( $data ) === false ) {
+            if ( empty( $data['entities'] ) === false ) {
+                foreach ( $data['entities'] as $entity ) {
+                    $plural = strtolower( $inflector->pluralize( $entity['entity_type'] ) );
+                    $term = get_term_by( 'name', $entity['title'], "semantria-$plural" );
+                    
+                    if ( $term !== false ) {
+                        $entity_term_ids[] = $term->term_taxonomy_id;
+                    }
+                }
+            }
+            
+            if ( empty( $data['entities'] ) === false ) {
+                foreach ( $data['themes'] as $theme ) {
+                    $term = get_term_by( 'name', $theme['title'], 'post_tag' );
+                    
+                    if ( $term !== false ) {
+                        $theme_term_ids[] = $term->term_taxonomy_id;
+                    }
+                }
+            }
+            
+            $semantria_term_table = $wpdb->prefix . 'term_relationships_semantria';
+            
+            /**
+             * Put the term IDs together in the one string.
+             */
+            $in_delete_terms = "'" . implode("', '", array_merge( $entity_term_ids, $theme_term_ids ) ) . "'";
+            //var_dump($entity_term_ids, $theme_term_ids);
+            /**
+             * And then blitz them from the term_relationship tables.
+             */
+            $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id IN ($in_delete_terms)", $post_id ) );
+            $wpdb->query( $wpdb->prepare( "DELETE FROM $semantria_term_table WHERE object_id = %d AND term_taxonomy_id IN ($in_delete_terms)", $post_id ) );
+        }
+    }
 	
     function semantria_get_data( $semantria_queue_id ) {
         global $wpdb;
