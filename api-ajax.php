@@ -60,9 +60,11 @@
      */
     function semantria_ajax_save() {
         $data = $_POST['data'];
+        $post_data = get_post( $data['article']['post_id'] );
         
         if ( empty( $data ) === false ) {
-            semantria_process_document_data( $data['article']['post_id'], $data );
+            semantria_clear_all_terms( $post_data->ID, $data['id'] );
+            semantria_process_document_data( $post_data->ID, $data );
             semantria_queue_complete( $data['id'] );
             
             echo( 'done' );

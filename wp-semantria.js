@@ -47,7 +47,8 @@
             save : function () {
                 /**
                  * Perform a deep copy of the current data retrieved from the Semantria
-                 * Queue at the start.
+                 * Queue at the start.  Not the most efficient mechanism but I'm stumped
+                 * for a better alternative for now.
                  */
                 var selected = jQuery.extend( true, {}, wpsemantria.modal.current.data );
                 
@@ -58,6 +59,10 @@
                     selected.entities = jQuery.grep( selected.entities, function ( obj, index ) {
                         return jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' );
                     } );
+                    
+                    selected.entities_remove = jQuery.grep( selected.entities, function ( obj, index ) {
+                        return jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' ) === false;
+                    } );
                 }
                 
                 /**
@@ -66,6 +71,10 @@
                 if ( selected.themes ) {
                     selected.themes = jQuery.grep( selected.themes, function ( obj, index ) {
                         return jQuery( 'div[rel="options"] input[name="theme[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' );
+                    } );
+                    
+                    selected.themes_remove = jQuery.grep( selected.themes, function ( obj, index ) {
+                        return jQuery( 'div[rel="options"] input[name="theme[]"][type="checkbox"][value="' + index + '"]', '#pnlSemantriaModal' ).prop( 'checked' ) === false;
                     } );
                 }
                 
