@@ -18,9 +18,10 @@
                  * so that we can display them to the user.
                  */
                 if ( json.entities ) {
-                    wpsemantria.modal.bind_option( { item_title : 'Entities', item_type : 'entity', items : json.entities } );
+                    wpsemantria.modal.bind_option( { description : 'Hover over to view the terms in the text.', item_title : 'Entities', item_type : 'entity', items : json.entities } );
                     
-                    jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"]', '#pnlSemantriaModal' ).change( function () {} );
+                    //jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"]', '#pnlSemantriaModal' ).change( function () {} );
+                    jQuery( 'div[rel="options"] > ul[rel="entity"] label', '#pnlSemantriaModal' ).hover( function () {}, function () {} );
                 }
                 
                 if ( json.themes ) {
@@ -31,7 +32,7 @@
                 console.log( json );
             },
             bind_option : function ( data ) {
-                var Template = Handlebars.compile( '<h4>{{item_title}}</h4><ul>{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
+                var Template = Handlebars.compile( '<h4>{{item_title}}</h4>{{#if description}}<div>{{description}}</div>{{/if}}<ul rel="{{item_type}}">{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
                 jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).append( Template( data ) );
             },
             hide : function () {
