@@ -223,7 +223,7 @@
 			<h3>Sementria Ingestion</h3>
 		' );
 		
-		if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_ingestion_complete', null ) === null ) {
+		if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_ingestion_complete', null ) !== 'yes' ) {
 			$total = $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('page', 'post')" );
 			
 			echo( '
