@@ -101,7 +101,6 @@
 			array(
 				'semantria_id' => $semantria_id,
 				'added' => $now->format( 'Y-m-d H:i:s' ),
-				'closed' => null,
 				'status' => 'queued',
 				'type' => $type
 			)
@@ -162,6 +161,10 @@
 		$content = apply_filters( 'semantria_build_document_content', $content, $post_id );
 		$whole_content = implode( "\n\n", $content );
 		
+		if ( empty( $whole_content ) ) {
+			return null;
+		}
+
 		if ( strlen( $whole_content ) > 8192 ) {
 			return array(
 				'id' => uniqid( '' ),
@@ -391,6 +394,14 @@
 		
 		$document = semantria_build_document( $post_id );
 		$queue_type = 'document';
+		
+		/**
+		 * If the document returned is null, then that means the post->content
+		 * field was empty and thus no processing can be performed.
+		 */
+		if ( $document == null ) {
+			return null;
+		}
 		
 		if ( array_key_exists( 'documents', $document ) ) {
 			$status = $semantria_session->queueCollection( $document );
