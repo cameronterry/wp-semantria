@@ -142,8 +142,7 @@
             
             if ( $semantria_status == 'queued' ) {
                 printf( '
-                    <a class="evaluate" data-semantria-id="%1$s" data-post-id="%2$s" href="#">Evalulate</a>
-                    | <a class="update-status" data-semantria-id="%1$s" data-next-status="processing" data-post-id="%2$s" href="#">Update Status</a>
+                    <a class="update-status" data-semantria-id="%1$s" data-next-status="processing" data-post-id="%2$s" href="#">Process</a>
                     | <span class="trash"><a href="#">Stop</a></span>',
                     $row->semantria_id,
                     $row->post_id
@@ -193,6 +192,7 @@
                         <img alt="Loading" src="' . plugins_url( 'wp-semantria/assets/img/loader-48x48.gif' ) . '" />
                     </div>
                 </div>
+                <input id="hdnSaveNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_save_security' ) . '" />
                 <div id="pnlSemantriaBackdrop" class="semantria-modal-backdrop"></div>
             </div>
         ' );

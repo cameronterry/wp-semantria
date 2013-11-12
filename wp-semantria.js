@@ -83,7 +83,8 @@
                     ajaxurl,
                     {
                         action: 'wp_semantria_save',
-                        data : selected
+                        data : selected,
+                        security : jQuery( '#hdnSaveNonce', '.wrap.wp-semantria-content' ).val()
                     },
                     function ( data ) {
                         wpsemantria.modal.hide();

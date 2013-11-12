@@ -59,6 +59,8 @@
      * 
      */
     function semantria_ajax_save() {
+        check_ajax_referer( 'wp_semantria_save_security', 'security' );
+
         $data = $_POST['data'];
         $post_data = get_post( $data['article']['post_id'] );
         
@@ -148,8 +150,18 @@
             die();
         }
         
+        /**
+         * Handle Processing for the document - this is for Documents in the queue which
+         * are sent to Semantria but haven't called the API service to see if the Document
+         * has been processed with entities.
+         */
         if ( $new_status == 'processing' ) {
             semantria_get_document( $post_id, $semantria_queue_id );
+            $echo_value = 'done';
+        }
+
+        if ( $new_status == 'complete' ) {
+            semantria_queue_complete( $semantria_queue_id );
             $echo_value = 'done';
         }
         

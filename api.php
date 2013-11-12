@@ -422,6 +422,12 @@
 		}
 	}
     
+    /**
+     * Used to validate if the provided string is a valid Status
+     * type for the Semantria plugin.
+     * 
+     * @param string $status String representation of an Semantria post status type.
+     */
     function semantria_status_is_valid( $status ) {
         return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped' ) );
     }
