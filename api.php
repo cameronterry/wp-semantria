@@ -108,6 +108,17 @@
 	}
 	
 	/**
+	 * Updates the Semantria Queue table to tell us that the specified
+	 * item on the queue has expired (exceeded the 24-hours from it's
+	 * initial send to the Semantria's web service).
+	 * 
+	 * @uses semantria_queue_complete Performs the actual database UPDATE statement, as this is an type of "complete" status.
+	 */
+	function semantria_queue_expire( $semantria_id ) {
+		semantria_queue_complete( $semantria_id, 'expired' );
+	}
+
+	/**
 	 * Updates the Semantria Queue table to tell us that a processed
 	 * document has been retrieved and the Entities assigned within
 	 * WordPress.
@@ -116,7 +127,7 @@
 	 * @param string $semantria_id The Queue ID provided in the call to Semantria.
 	 * @uses do_action() Calls 'semnatria_queue_complete' hook updated the Semantria Queue record.
 	 */
-	function semantria_queue_complete( $semantria_id ) {
+	function semantria_queue_complete( $semantria_id, $status = 'complete' ) {
 		global $wpdb;
 		
 		$now = new DateTime();
@@ -125,7 +136,7 @@
 			$wpdb->prefix . 'semantria_queue',
 			array(
 				'closed' => $now->format( 'Y-m-d H:i:s' ),
-				'status' => 'complete'
+				'status' => $status
 			),
 			array(
 				'semantria_id' => $semantria_id
@@ -285,12 +296,6 @@
 			}
 		}
 	}
-    
-    function semantria_get_queue_item( $semantria_queue_id ) {
-        global $wpdb;
-        
-        
-    }
 	
 	function semantria_process_document( $post_id, $semantria_queue_id ) {
 		global $wpdb;
@@ -311,8 +316,6 @@
         if ( array_key_exists( 'entities', $data ) && empty( $data['entities'] ) == false ) {
             semantria_process_terms( $post_id, $data['entities'], false );
         }
-        
-        semantria_queue_complete( $semantria_queue_id );
     }
 	
 	function semantria_process_queue() {
@@ -429,7 +432,7 @@
      * @param string $status String representation of an Semantria post status type.
      */
     function semantria_status_is_valid( $status ) {
-        return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped' ) );
+        return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped', 'expired', 'requeue' ) );
     }
 
 ?>

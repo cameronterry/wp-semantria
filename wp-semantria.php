@@ -142,7 +142,7 @@ Author URI: https://github.com/cameronterry/
 	}
 	
 	function semantria_post_handler( $post_id ) {
-		if ( !wp_is_post_revision( $post_id ) && get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
+		if ( false === wp_is_post_revision( $post_id ) && get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
 			semantria_commit_document( $post_id );
 		}
 	}
@@ -180,14 +180,36 @@ Author URI: https://github.com/cameronterry/
 	function semantria_cron_job() {
 		global $wpdb;
 		
+		/**
+		 * Handles items in the queue which are of status "processing", which is that the
+		 * item has been sent to Semantria and a response is received.
+		 */
 		semantria_process_queue();
 		
 		$queue_table = $wpdb->prefix . 'semantria_queue';
-		$queue = $wpdb->get_results( "SELECT pm.post_id, qt.semantria_id, qt.type FROM $queue_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 400" );
-		
-		if ( empty( $queue ) == false ) {
+		$now = new DateTime();
+		$item_date = new DateTime();
+
+		/**
+		 * Handles items in the queue which are of status "queued", which means that the
+		 * data has been sent to Semantria but a response with the analysis needs to be
+		 * acquired before moving to Processing.
+		 * 
+		 * However, if the "queued" item is older than 24 hours, then the item is set to
+		 * "expired" as Semantria will not retain the information.
+		 */
+		$queue = $wpdb->get_results( "SELECT pm.post_id, qt.semantria_id, qt.added, qt.type FROM $queue_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 50" );
+
+		if ( false === empty( $queue ) ) {
 			foreach( $queue as $item ) {
-				semantria_get_document( $item->post_id, $item->semantria_id, $item->type );
+				$item_date = new DateTime( $item->added );
+
+				if ( 1 >= $item_date->diff( $now )->d ) {
+					semantria_get_document( $item->post_id, $item->semantria_id, $item->type );
+				}
+				else {
+					semantria_queue_expire( $item->semantria_id );
+				}
 			}
 		}
 	}
