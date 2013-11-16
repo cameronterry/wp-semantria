@@ -6,6 +6,8 @@
      * on the "Evaluate" screen available via the Semantria Queue interface.
      */
     function semantria_ajax_get() {
+        check_ajax_referer( 'wp_semantria_get_security', 'security' );
+
         $semantria_queue_id = $_POST['semantria_id'];
         $post_id = intval( $_POST['post_id'] );
         
@@ -94,6 +96,8 @@
     function semantria_ajax_ingest_all() {
 		global $wpdb;
 		
+        check_ajax_referer( 'wp_semantria_ingestion_security', 'security' );
+
 		set_time_limit( 600 );
 		
 		$offset = intval( $_POST['offset'] );
@@ -140,6 +144,8 @@
      * a record moving from one step to the next.
      */
     function semantria_ajax_update_status() {
+        check_ajax_referer( 'wp_semantria_update_security', 'security' );
+
         $semantria_queue_id = $_POST['semantria_id'];
         $post_id = $_POST['post_id'];
         $new_status = $_POST['new_status'];

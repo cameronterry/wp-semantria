@@ -192,7 +192,9 @@
                         <img alt="Loading" src="' . plugins_url( 'wp-semantria/assets/img/loader-48x48.gif' ) . '" />
                     </div>
                 </div>
+                <input id="hdnGetNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_get_security' ) . '" />
                 <input id="hdnSaveNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_save_security' ) . '" />
+                <input id="hdnUpdateNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_update_security' ) . '" />
                 <div id="pnlSemantriaBackdrop" class="semantria-modal-backdrop"></div>
             </div>
         ' );
@@ -242,6 +244,7 @@
 		}
 		
 		echo( '
+                    <input id="hdnUpdateNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
 				</form>
 			</div>
 		' );

@@ -123,7 +123,8 @@
 				{
                     action: 'wp_semantria_get',
                     semantria_id : semantria_id,
-                    post_id : post_id
+                    post_id : post_id,
+                    security : jQuery( '#hdnGetNonce', '.wrap.wp-semantria-content' ).val()
                 },
 				wpsemantria.modal.bind,
 				'json'
@@ -142,7 +143,8 @@
                     action: 'wp_semantria_update_status',
                     semantria_id : semantria_id,
                     post_id : post_id,
-                    new_status : status
+                    new_status : status,
+                    security : jQuery( '#hdnUpdateNonce', '.wrap.wp-semantria-content' ).val()
                 },
 				function ( status ) {
                     if ( status == 'done' ) {
@@ -176,7 +178,8 @@
 				ajaxurl,
 				{
 					action: 'wp_semantria_ingest_all',
-					offset: offset
+					offset: offset,
+                    security : jQuery( '#hdnIngestionNonce', '.wrap.wp-semantria-content' ).val()
 				},
 				wp_semantria_ajax_handler,
 				'text'
