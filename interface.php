@@ -26,7 +26,7 @@
     
     function semantria_queue_page() {
         global $wpdb;
-        
+
         $page_url = admin_url( 'admin.php?page=semantria-queue' );
         $semantria_status = '';
         
@@ -154,7 +154,9 @@
             else if ( $semantria_status == 'complete' ) {
                 printf( '<a class="evaluate" data-semantria-id="%s" data-post-id="%s" href="#">Review</a>', $row->semantria_id, $row->post_id );
             }
-            else if ( $semantria_status == '' ) {}
+            else if ( 'expired' === $semantria_status ) {
+                printf( '<a class="update-status" data-semantria-id="%1$s" data-next-status="requeue" data-post-id="%2$s" href="#">Requeue</a>', $row->semantria_id, $row->post_id );
+            }
             else if ( $semantria_status == '' ) {}
             
             echo( '

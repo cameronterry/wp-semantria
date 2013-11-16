@@ -166,6 +166,11 @@
             $echo_value = 'done';
         }
 
+        if ( 'requeue' == $new_status ) {
+            semantria_commit_document( $post_id );
+            $echo_value = 'done';
+        }
+
         if ( $new_status == 'complete' ) {
             semantria_queue_complete( $semantria_queue_id );
             $echo_value = 'done';
