@@ -2,12 +2,14 @@
 
 	function semantria_admin_init() {
 		register_setting( 'semantria_settings', 'semantria_consumer_key' );
-		register_setting( 'semantria_settings', 'semantria_consumer_secret' );
+        register_setting( 'semantria_settings', 'semantria_consumer_secret' );
+		register_setting( 'semantria_settings', 'semantria_mode_selection', 'semantria_mode_selection_validation_logic' );
 		
 		add_settings_section( 'semantria_settings', 'Semantria Settings', 'semantria_settings_callback', 'semantria-settings' );
 		
 		add_settings_field( 'semantria_consumer_key', 'Consumer Key', 'semantria_consumer_key_callback', 'semantria-settings', 'semantria_settings' );
-		add_settings_field( 'semantria_consumer_secret', 'Consumer Secret', 'semantria_consumer_secret_callback', 'semantria-settings', 'semantria_settings' );
+        add_settings_field( 'semantria_consumer_secret', 'Consumer Secret', 'semantria_consumer_secret_callback', 'semantria-settings', 'semantria_settings' );
+		add_settings_field( 'semantria_mode_selection', 'Mode', 'semantria_mode_callback', 'semantria-settings', 'semantria_settings' );
 	}
 	
 	function semantria_admin_menu() {
@@ -23,6 +25,31 @@
 	function semantria_consumer_secret_callback() {
 		echo( '<input name="semantria_consumer_secret" style="width:250px;" type="text" value="' . get_option( 'semantria_consumer_secret' ) . '" />' );
 	}
+
+    function semantria_mode_callback() {
+        $selected_value = get_option( 'semantria_mode_selection', 'automatic' );
+
+        $values = array( 'automatic', 'manual' );
+
+        echo( '<select name="semantria_mode_selection">' );
+
+        foreach ( $values as $value ) {
+            printf( '<option %2$s value="%1$s">%1$s</option>', $value, ( $value === $selected_value ? 'selected="selected"' : '' ) );
+        }
+
+        echo( '</select>' );
+    }
+
+    function semantria_mode_selection_validation_logic( $input ) {
+        if ( 'automatic' === $input ) {
+            semantria_cron_create();
+        }
+        else if ( 'manual' === $input ) {
+            semantria_cron_clear();
+        }
+
+        return $input;
+    }
     
     function semantria_queue_page() {
         global $wpdb;
@@ -54,7 +81,7 @@
             'total' => $num_pages,
             'current' => $current_page
         ) );
-        
+        $results = array();
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT p.post_title, p.post_date, p.post_type, pm.post_id, qt.status, qt.semantria_id, qt.added, qt.closed
             FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
             WHERE qt.status = %s
@@ -208,7 +235,8 @@
 	
 	function semantria_settings_page() {
 		global $wpdb;
-		
+		$time = wp_next_scheduled( 'semantria_cron_job' );
+        wp_clear_scheduled_hook( $time, 'semantria_five_mins', 'semantria_cron_job' );
 		echo( '
 			<div class="wrap">
 				<div class="icon32">

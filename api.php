@@ -3,7 +3,17 @@
 	function semantria_taxonomy_name( $taxonomy_friendly_name_plural ) {
 		return 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
 	}
-	
+
+	function semantria_cron_clear() {
+		wp_clear_scheduled_hook( 'semantria_cron_job' );
+	}
+
+	function semantria_cron_create() {
+		if ( false === wp_next_scheduled( 'semantria_cron_job' ) ) {
+			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+		}
+	}
+
 	/**
 	 * When a new entity is provided from the Semantria results, this method
 	 * is used to create the taxonomy within WordPress for use.

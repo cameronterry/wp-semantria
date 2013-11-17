@@ -17,13 +17,6 @@ Author URI: https://github.com/cameronterry/
 	require_once( dirname(__FILE__) . '/inflector.php' );
 	require_once( dirname(__FILE__) . '/interface.php' );
 	
-	/**
-	 * Setup the Global variable for the Semantria Session object.
-	 */
-	if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_consumer_secret', null ) !== null ) {
-		$GLOBALS['semantria_session'] = new \Semantria\Session( get_option( 'semantria_consumer_key' ), get_option( 'semantria_consumer_secret' ) , null, 'WordPress' );
-	}
-	
 	function semantria_admin_enqueue( $hook_suffix ) {
         if ( $hook_suffix == 'wp-semantria_page_semantria-settings' || $hook_suffix == 'toplevel_page_semantria-queue' ) {
 			wp_register_script( 'handlebars-js', '//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js' );
@@ -91,8 +84,7 @@ Author URI: https://github.com/cameronterry/
 	}
 	
 	function semantria_deactivation_hook() {
-		$time = wp_next_scheduled( 'semantria_cron_job' );
-		wp_clear_scheduled_hook( $time, 'semantria_five_mins', 'semantria_cron_job' );
+		semantria_cron_clear();
 	}
 	
 	function semantria_init() {
@@ -139,6 +131,21 @@ Author URI: https://github.com/cameronterry/
 			
 			register_taxonomy( semantria_taxonomy_name( $taxonomy->name_plural ), array( 'page', 'post' ), $args );
 		}
+
+		/**
+		 * Setup the plugin's global variables.
+		 */
+		$GLOBALS['semantria_mode'] = get_option( 'semantria_mode_selection', 'automatic' );
+
+		/**
+		 * Setup the Global variable for the Semantria Session object.
+		 */
+		$semantria_consumer_key = get_option( 'semantria_consumer_key', null );
+		$semantria_consumer_secret = get_option( 'semantria_consumer_secret', null );
+
+		if ( null !== $semantria_consumer_key && null !== $semantria_consumer_secret ) {
+			$GLOBALS['semantria_session'] = new \Semantria\Session( $semantria_consumer_key, $semantria_consumer_secret, null, 'WordPress' );
+		}
 	}
 	
 	function semantria_post_handler( $post_id ) {
@@ -169,17 +176,19 @@ Author URI: https://github.com/cameronterry/
 	}
 	
 	function semantria_ingestion_complete() {
+		global $semantria_mode;
+
 		echo( 'finished' );
 		update_option( 'semantria_ingestion_complete', 'yes' );
 		
-		if ( wp_next_scheduled( 'semantria_cron_job' ) === false ) {
-			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+		if ( 'automatic' === $semantria_mode ) {
+			semantria_cron_create();
 		}
 	}
 	
 	function semantria_cron_job() {
 		global $wpdb;
-		
+		return;
 		/**
 		 * Handles items in the queue which are of status "processing", which is that the
 		 * item has been sent to Semantria and a response is received.
