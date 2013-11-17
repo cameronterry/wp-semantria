@@ -1,4 +1,21 @@
-    
+/*
+
+highlight v4
+
+Highlights arbitrary terms.
+
+<http://johannburkard.de/blog/programming/javascript/highlight-javascript-text-higlighting-jquery-plugin.html>
+
+MIT license.
+
+Johann Burkard
+<http://johannburkard.de>
+<mailto:jb@eaio.com>
+
+*/
+
+jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d}return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}): this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
+
     var wpsemantria = {
         modal : {
             current : {
@@ -18,10 +35,17 @@
                  * so that we can display them to the user.
                  */
                 if ( json.entities ) {
-                    wpsemantria.modal.bind_option( { description : 'Hover over to view the terms in the text.', item_title : 'Entities', item_type : 'entity', items : json.entities } );
+                    wpsemantria.modal.bind_option( {
+                        description : 'Hover over to view the terms in the text.',
+                        item_title : 'Entities',
+                        item_type : 'entity',
+                        items : json.entities
+                    } );
                     
-                    //jQuery( 'div[rel="options"] input[name="entity[]"][type="checkbox"]', '#pnlSemantriaModal' ).change( function () {} );
-                    jQuery( 'div[rel="options"] > ul[rel="entity"] label', '#pnlSemantriaModal' ).hover( function () {}, function () {} );
+                    jQuery( 'div[rel="options"] > ul[rel="entity"] label > span', '#pnlSemantriaModal' ).hover( function () {
+                            wpsemantria.modal.highlight( jQuery( this ).text() );
+                        }, wpsemantria.modal.highlight_remove
+                    );
                 }
                 
                 if ( json.themes ) {
@@ -29,15 +53,22 @@
                 }
                 
                 wpsemantria.modal.select_options();
-                console.log( json );
+
+                console.log(json);
             },
             bind_option : function ( data ) {
-                var Template = Handlebars.compile( '<h4>{{item_title}}</h4>{{#if description}}<div>{{description}}</div>{{/if}}<ul rel="{{item_type}}">{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;{{title}} {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
+                var Template = Handlebars.compile( '<h4>{{item_title}}</h4>{{#if description}}<div>{{description}}</div>{{/if}}<ul rel="{{item_type}}">{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;<span>{{title}}</span> {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
                 jQuery( 'div[rel="options"]', '#pnlSemantriaModal' ).append( Template( data ) );
             },
             hide : function () {
                 jQuery( '#pnlSemantriaBackdrop' ).fadeOut();
                 jQuery( '#pnlSemantriaModal' ).fadeOut();
+            },
+            highlight : function( word ) {
+                jQuery( '.semantria-modal-content > .post > .inner', '#pnlSemantriaModal' ).highlight( word );
+            },
+            highlight_remove : function( word ) {
+                jQuery( '.semantria-modal-content > .post > .inner', '#pnlSemantriaModal' ).removeHighlight();
             },
             reset : function () {
                 jQuery( 'div[rel="post"]', '#pnlSemantriaModal' ).css( 'display', 'none' ).html( '' );
