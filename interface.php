@@ -81,7 +81,7 @@
             'total' => $num_pages,
             'current' => $current_page
         ) );
-        $results = array();
+        
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT p.post_title, p.post_date, p.post_type, pm.post_id, qt.status, qt.semantria_id, qt.added, qt.closed
             FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
             WHERE qt.status = %s
@@ -235,8 +235,7 @@
 	
 	function semantria_settings_page() {
 		global $wpdb;
-		$time = wp_next_scheduled( 'semantria_cron_job' );
-        wp_clear_scheduled_hook( $time, 'semantria_five_mins', 'semantria_cron_job' );
+
 		echo( '
 			<div class="wrap">
 				<div class="icon32">
