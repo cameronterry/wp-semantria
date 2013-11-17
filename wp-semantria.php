@@ -173,7 +173,7 @@ Author URI: https://github.com/cameronterry/
 		update_option( 'semantria_ingestion_complete', 'yes' );
 		
 		if ( wp_next_scheduled( 'semantria_cron_job' ) === false ) {
-			//wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
 		}
 	}
 	
