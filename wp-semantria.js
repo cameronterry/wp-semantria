@@ -42,10 +42,16 @@ jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=
                         items : json.entities
                     } );
                     
-                    jQuery( 'div[rel="options"] > ul[rel="entity"] label > span', '#pnlSemantriaModal' ).hover( function () {
-                            wpsemantria.modal.highlight( jQuery( this ).text() );
-                        }, wpsemantria.modal.highlight_remove
-                    );
+                    /**
+                     * Will need to revisit this - it's not having the impact I'd hoped for and
+                     * doesn't appear to offer any additional useful information.  Maybe coupled
+                     * sentiment polarity, evidence and / or is about fields may make it more 
+                     * useful to the author evaluating the results.
+                     */
+                    //jQuery( 'div[rel="options"] > ul[rel="entity"] label > span', '#pnlSemantriaModal' ).hover( function () {
+                    //        wpsemantria.modal.highlight( jQuery( this ).text() );
+                    //    }, wpsemantria.modal.highlight_remove
+                    //);
                 }
                 
                 if ( json.themes ) {
@@ -53,8 +59,6 @@ jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=
                 }
                 
                 wpsemantria.modal.select_options();
-
-                console.log(json);
             },
             bind_option : function ( data ) {
                 var Template = Handlebars.compile( '<h4>{{item_title}}</h4>{{#if description}}<div>{{description}}</div>{{/if}}<ul rel="{{item_type}}">{{#items}}<li><label><input name="{{../item_type}}[]" data-title="{{title}}" type="checkbox" value="{{@index}}" />&nbsp;&nbsp;&nbsp;<span>{{title}}</span> {{#if label}}({{label}}){{/if}}</label></li>{{/items}}</ul>' );
