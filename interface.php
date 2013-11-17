@@ -216,6 +216,17 @@
                     <br />
                 </div>
 				<h2>WP Semantria Settings</h2>
+        ' );
+
+        if ( isset( $_REQUEST['settings-updated'] ) ) {
+            echo( '
+                <div class="updated settings-error">
+                    <p><strong>Settings saved.</strong></p>
+                </div>
+            ' );
+        }
+
+        echo( '
 				<form method="post" action="options.php">
 		' );
 		
