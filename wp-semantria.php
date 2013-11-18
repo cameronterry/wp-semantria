@@ -56,6 +56,7 @@ Author URI: https://github.com/cameronterry/
 		$sql = "
 			CREATE TABLE $table_name (
 				semantria_id VARCHAR(100) NOT NULL,
+				post_id BIGINT NOT NULL,
 				added DATETIME NOT NULL,
 				closed DATETIME NULL,
 				type VARCHAR(16) NOT NULL,

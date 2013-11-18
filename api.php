@@ -101,7 +101,7 @@
 	 * @param string $semantria_id The Queue ID provided in the call to Semantria.
 	 * @param string $type Determines if the Semantria ID is for a Semantria Document or Collection.
 	 */
-	function semantria_add_queue( $semantria_id, $type ) {
+	function semantria_add_queue( $semantria_id, $post_id, $type ) {
 		global $wpdb;
 		
 		$now = new DateTime();
@@ -110,6 +110,7 @@
 			$wpdb->prefix . 'semantria_queue',
 			array(
 				'semantria_id' => $semantria_id,
+				'post_id' => $post_id,
 				'added' => $now->format( 'Y-m-d H:i:s' ),
 				'status' => 'queued',
 				'type' => $type
@@ -425,7 +426,7 @@
 		}
 		
 		if ( $status == 202 ) {
-			semantria_add_queue( $document['id'], $queue_type );
+			semantria_add_queue( $document['id'], $post_id, $queue_type );
 			update_post_meta( $post_id, 'semantria_queue_id', $document['id'] );
 			
 			return $document['id'];
