@@ -69,7 +69,7 @@
         }
         
         $semantria_table = $wpdb->prefix . 'semantria_queue';
-        $results_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(semantria_id) FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = %s", $semantria_status ) );
+        $results_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(semantria_id) FROM $semantria_table qt WHERE qt.status = %s", $semantria_status ) );
         
         $per_page = 40;
         $num_pages = ceil( $results_total / $per_page );
@@ -82,8 +82,8 @@
             'current' => $current_page
         ) );
         
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT p.post_title, p.post_date, p.post_type, pm.post_id, qt.status, qt.semantria_id, qt.added, qt.closed
-            FROM $semantria_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT p.post_title, p.post_date, p.post_type, qt.post_id, qt.status, qt.semantria_id, qt.added, qt.closed
+            FROM $semantria_table qt INNER JOIN $wpdb->posts p ON qt.post_id = p.ID
             WHERE qt.status = %s
             ORDER BY p.post_date DESC LIMIT %d, %d",
             $semantria_status,
