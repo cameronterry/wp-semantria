@@ -189,7 +189,7 @@ Author URI: https://github.com/cameronterry/
 	
 	function semantria_cron_job() {
 		global $wpdb;
-		return;
+		
 		/**
 		 * Handles items in the queue which are of status "processing", which is that the
 		 * item has been sent to Semantria and a response is received.
@@ -208,17 +208,17 @@ Author URI: https://github.com/cameronterry/
 		 * However, if the "queued" item is older than 24 hours, then the item is set to
 		 * "expired" as Semantria will not retain the information.
 		 */
-		$queue = $wpdb->get_results( "SELECT pm.post_id, qt.semantria_id, qt.added, qt.type FROM $queue_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 50" );
+		$queue = $wpdb->get_results( "SELECT qt.post_id, qt.semantria_id, qt.added, qt.type FROM $queue_table qt WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 100" );
 
 		if ( false === empty( $queue ) ) {
 			foreach( $queue as $item ) {
 				$item_date = new DateTime( $item->added );
-
+				
 				if ( 1 >= $item_date->diff( $now )->d ) {
-					semantria_get_document( $item->post_id, $item->semantria_id, $item->type );
+					semantria_queue_expire( $item->semantria_id );
 				}
 				else {
-					semantria_queue_expire( $item->semantria_id );
+					semantria_get_document( $item->post_id, $item->semantria_id, $item->type );
 				}
 			}
 		}

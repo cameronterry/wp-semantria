@@ -333,7 +333,7 @@
 		global $wpdb;
 		
 		$queue_table = $wpdb->prefix . 'semantria_queue';
-		$data = $wpdb->get_results( "SELECT pm.post_id, qt.semantria_id FROM $queue_table qt INNER JOIN $wpdb->postmeta pm ON qt.semantria_id = pm.meta_value WHERE qt.status = 'processing' ORDER BY added LIMIT 0, 400" );
+		$data = $wpdb->get_results( "SELECT qt.post_id, qt.semantria_id FROM $queue_table qt WHERE qt.status = 'processing' ORDER BY added LIMIT 0, 400" );
 		
 		foreach ( $data as $item ) {
 			semantria_process_document( $item->post_id, $item->semantria_id );
