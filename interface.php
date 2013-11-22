@@ -53,7 +53,7 @@
     
     function semantria_queue_page() {
         global $wpdb;
-
+        
         $page_url = admin_url( 'admin.php?page=semantria-queue' );
         $semantria_status = '';
         

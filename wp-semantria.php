@@ -3,7 +3,7 @@
 Plugin Name: WP Semantria
 Plugin URI: https://github.com/cameronterry/wp-semantria
 Description: This plugin connects with your Semantria API account to create new taxonomies from unstructure Post and Page content.  In addition, each post / taxonomy link contains a sentiment score so you can pick additional stories that are positive or negative.
-Version: 0.1.1
+Version: 0.2.0
 Author: Cameron Terry
 Author URI: https://github.com/cameronterry/
  */
@@ -209,12 +209,12 @@ Author URI: https://github.com/cameronterry/
 		 * "expired" as Semantria will not retain the information.
 		 */
 		$queue = $wpdb->get_results( "SELECT qt.post_id, qt.semantria_id, qt.added, qt.type FROM $queue_table qt WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 100" );
-
+		
 		if ( false === empty( $queue ) ) {
 			foreach( $queue as $item ) {
 				$item_date = new DateTime( $item->added );
 				
-				if ( 1 >= $item_date->diff( $now )->d ) {
+				if ( 1 <= $item_date->diff( $now )->d ) {
 					semantria_queue_expire( $item->semantria_id );
 				}
 				else {
