@@ -91,3 +91,20 @@
         top:0px;
         z-index:159900;
     }
+
+    /**
+     * MP6 / WordPress 3.8 adjustments
+     */
+    .wp-semantria-content {}
+
+        .wp-semantria-content .tablenav-pages {}
+
+            .wp-semantria-content .tablenav-pages .current {
+                border-collapse:collapse;
+                border-width:0;
+            }
+
+            .wp-semantria-content .tablenav-pages .page-numbers {
+                font-size:12px;
+                padding:3px 6px;
+            }
