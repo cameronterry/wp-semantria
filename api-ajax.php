@@ -157,7 +157,12 @@
          * are sent to Semantria but haven't called the API service to see if the Document
          * has been processed with entities.
          */
-        if ( $new_status == 'processing' ) {
+        if ( 'complete' == $new_status ) {
+            semantria_queue_complete( $semantria_queue_id );
+            $echo_value = 'done';
+        }
+
+        if ( 'processing' == $new_status ) {
             semantria_get_document( $post_id, $semantria_queue_id );
             $echo_value = 'done';
         }
@@ -167,8 +172,8 @@
             $echo_value = 'done';
         }
 
-        if ( $new_status == 'complete' ) {
-            semantria_queue_complete( $semantria_queue_id );
+        if ( 'stopped' == $new_status) {
+            semantria_queue_complete( $semantria_queue_id, 'stopped' );
             $echo_value = 'done';
         }
         

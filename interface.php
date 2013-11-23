@@ -170,7 +170,7 @@
             if ( $semantria_status == 'queued' ) {
                 printf( '
                     <a class="update-status" data-semantria-id="%1$s" data-next-status="processing" data-post-id="%2$s" href="#">Process</a>
-                    | <span class="trash"><a href="#">Stop</a></span>',
+                    | <span class="trash"><a class="update-status" data-semantria-id="%1$s" data-next-status="stopped" data-post-id="%2$s" href="#">Stop</a></span>',
                     $row->semantria_id,
                     $row->post_id
                 );
