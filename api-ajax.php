@@ -113,18 +113,14 @@
 		}
 		else if ( count( $post_ids ) < $count ) {
 			foreach( $post_ids as $post_id ) {
-				if ( get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
-					semantria_commit_document( $post_id );
-				}
+				semantria_commit_document( $post_id );
 			}
 			
 			semantria_ingestion_complete();
 		}
 		else {
 			foreach( $post_ids as $post_id ) {
-				if ( get_post_meta( $post_id, 'semantria_queue_id', true ) === '' ) {
-					semantria_commit_document( $post_id );
-				}
+				semantria_commit_document( $post_id );
 			}
 			
 			echo( $offset + $count );
