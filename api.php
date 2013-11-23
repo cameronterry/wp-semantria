@@ -89,7 +89,7 @@
 		else {
 			$term_details = get_term_by( 'name', $term, $taxonomy );
 			$set_term_result = wp_set_post_terms( $post_id, $term_details->name, $taxonomy, true );
-			$term_id = $term_details->term_id;
+			$term_id = $set_term_result[0];
 		}
 		
 		if ( $set_term_result !== false ) {
@@ -263,12 +263,12 @@
              * Put the term IDs together in the one string.
              */
             $in_delete_terms = "'" . implode("', '", array_merge( $entity_term_ids, $theme_term_ids ) ) . "'";
-            //var_dump($entity_term_ids, $theme_term_ids);
+            
             /**
              * And then blitz them from the term_relationship tables.
              */
             $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id IN ($in_delete_terms)", $post_id ) );
-            $wpdb->query( $wpdb->prepare( "DELETE FROM $semantria_term_table WHERE object_id = %d AND term_taxonomy_id IN ($in_delete_terms)", $post_id ) );
+            $wpdb->query( $wpdb->prepare( "DELETE FROM $semantria_term_table WHERE object_id = %d", $post_id ) );
         }
     }
 	

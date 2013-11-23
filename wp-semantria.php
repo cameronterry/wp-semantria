@@ -161,6 +161,37 @@ Author URI: https://github.com/cameronterry/
 		$table_name = $wpdb->prefix . 'term_relationships_semantria';
 		$wpdb-query( $wpdb->prepare( "DELETE FROM $table_name WHERE object_id = %d", $post_id ) );
 	}
+
+	function semantria_edit_post_handler( $post_id, $post ) {
+		global $wpdb;
+
+		$semantria_taxonomy_table = $wpdb->prefix . 'semantria_taxonomy';
+		$semantria_relationship_table = $wpdb->term_relationships . '_semantria';
+
+		/**
+		 * Need to grab all the create taxonomy names so that we can
+		 * get all the Terms for the Post.
+		 */
+		$taxonomy_names = array_map( 'semantria_taxonomy_name', $wpdb->get_col( "SELECT name_plural FROM $semantria_taxonomy_table" ) );
+		$taxonomy_names[] = 'post_tag';
+
+		/**
+		 * We only need the IDs of the Terms, so we just grab them.
+		 */
+		$term_ids = array_map( function ( $term_obj ) { return $term_obj->term_id; }, wp_get_object_terms( $post_id, $taxonomy_names ) );
+		
+		/**
+		 * Now armed with all the information we need, we now removed the any and all
+		 * Semantria taxonomies which are have been removed during the post update.
+		 */
+		$term_ids = implode( ',', $term_ids );
+		$delete_ids = $wpdb->get_col( $wpdb->prepare( "SELECT semantria_relationship_id FROM $semantria_relationship_table rs
+			INNER JOIN $wpdb->term_taxonomy tt ON tt.term_taxonomy_id = rs.term_taxonomy_id
+			WHERE rs.object_id = %d AND tt.term_id NOT IN($term_ids)", $post_id ) );
+
+		$delete_id_string = implode( ',', $delete_ids );
+		$wpdb->query( $wpdb->prepare( "DELETE FROM $semantria_relationship_table WHERE object_id = %d AND semantria_relationship_id IN($delete_id_string)", $post_id ) );
+	}
 	
 	function semantria_set_object_terms( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
 		global $wpdb;
@@ -209,7 +240,7 @@ Author URI: https://github.com/cameronterry/
 		 * "expired" as Semantria will not retain the information.
 		 */
 		$queue = $wpdb->get_results( "SELECT qt.post_id, qt.semantria_id, qt.added, qt.type FROM $queue_table qt WHERE qt.status = 'queued' ORDER BY added LIMIT 0, 100" );
-		
+
 		if ( false === empty( $queue ) ) {
 			foreach( $queue as $item ) {
 				$item_date = new DateTime( $item->added );
@@ -246,11 +277,12 @@ Author URI: https://github.com/cameronterry/
 	
 	add_filter( 'cron_schedules', 'semantria_cron_schedule' );
 	
+	add_action( 'edit_post', 'semantria_edit_post_handler' );
+	add_action( 'init', 'semantria_init' );
 	add_action( 'publish_post', 'semantria_post_handler' );
 	add_action( 'publish_page', 'semantria_post_handler' );
 	add_action( 'trashed_post', 'semantria_post_delete_handler' );
 	add_action( 'set_object_terms', 'semantria_set_object_terms', 10, 6 );
 	add_action( 'semantria_cron_job', 'semantria_cron_job' );
-	add_action( 'init', 'semantria_init' );
 	
 ?>
