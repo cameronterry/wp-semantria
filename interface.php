@@ -265,29 +265,23 @@
 			<h3>Sementria Ingestion</h3>
 		' );
 		
-		if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_ingestion_complete', null ) !== 'yes' ) {
-			$total = semantria_get_unprocessed_post_count();
-			
+        $total = semantria_get_unprocessed_post_count();
+
+		if ( get_option( 'semantria_consumer_key', null ) !== null && $total > 0 ) {
 			echo( '
-				<p>Now that the Semantria Consumer Key and Consumer Secret have been inputted, you are now ready to perform the data injestion.  This process will send all current Posts to Semantria for processing.</p>
-				<input id="cmdPerformDataIngestion" name="performDataIngestion" class="button-primary" type="button" value="Perform Data Ingestion" />
-				<span id="ltlCurrentPosition" style="font-weight:bold;padding-left:7px;">0</span>
-				of
-				<span id="ltlTotalRecords" style="font-weight:bold;">' . $total . '</span>
-			' );
-		}
-		
-		if ( get_option( 'semantria_ingestion_complete', null ) === 'yes' ) {
-			echo( '
-				<p>Ingestion is complete.  Please consult your taxonomy admin screens to see what we\'ve gleamed from your Pages and Posts :-)</p>
-			' );
-		}
-		
-		echo( '
-                    <input id="hdnIngestionNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
-				</form>
-			</div>
-		' );
+        				<p>There are currently Posts and / or Pages which have not been processed by Semantria.  This process will send all current Posts to Semantria for processing.</p>
+        				<input id="cmdPerformDataIngestion" name="performDataIngestion" class="button-primary" type="button" value="Perform Data Ingestion" />
+        				<span id="ltlCurrentPosition" style="font-weight:bold;padding-left:7px;">0</span>
+        				of
+        				<span id="ltlTotalRecords" style="font-weight:bold;">' . $total . '</span>
+                        <input id="hdnIngestionNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
+    				</form>
+    			</div>
+    		' );
+        }
+        else {
+            printf( '<p>All posts are accounted for and are in the Semantria Queue.  Go to <a href="%s">WP Semantria page</a> to view the progress of each document.</p>', admin_url( 'admin.php?page=semantria-queue' ) );
+        }
 	}
 
 ?>
