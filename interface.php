@@ -237,7 +237,7 @@
 		global $wpdb;
 
 		echo( '
-			<div class="wrap">
+			<div class="wrap wp-semantria-content">
 				<div class="icon32">
                     <img src="' . plugins_url( 'wp-semantria/assets/img/icon-32x32.png' ) . '" />
                     <br />
@@ -284,7 +284,7 @@
 		}
 		
 		echo( '
-                    <input id="hdnUpdateNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
+                    <input id="hdnIngestionNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
 				</form>
 			</div>
 		' );
