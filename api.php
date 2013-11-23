@@ -80,8 +80,6 @@
 	 * @param float $sentiment Semantria's sentiment analysis of the word in context of the article.
 	 */
 	function semantria_set_post_term( $post_id, $term, $taxonomy, $sentiment ) {
-		global $wpdb;
-		
 		$term_id = -1;
 		
 		if ( $taxonomy == 'post_tag' ) {
@@ -95,15 +93,21 @@
 		}
 		
 		if ( $set_term_result !== false ) {
-			$wpdb->insert(
-				$wpdb->prefix . 'term_relationships_semantria',
-				array(
-					'object_id' => $post_id,
-					'term_taxonomy_id' => $term_id,
-					'sentiment' => $sentiment
-				)
-			);
+			semantria_set_post_term_insert( $post_id, $term_id, $sentiment );
 		}
+	}
+
+	function semantria_set_post_term_insert( $post_id, $term_id, $sentiment ) {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->prefix . 'term_relationships_semantria',
+			array(
+				'object_id' => $post_id,
+				'term_taxonomy_id' => $term_id,
+				'sentiment' => $sentiment
+			)
+		);
 	}
 	
 	/**
