@@ -53,7 +53,7 @@
     
     function semantria_queue_page() {
         global $wpdb;
-        
+
         $page_url = admin_url( 'admin.php?page=semantria-queue' );
         $semantria_status = '';
         
@@ -266,7 +266,7 @@
 		' );
 		
 		if ( get_option( 'semantria_consumer_key', null ) !== null && get_option( 'semantria_ingestion_complete', null ) !== 'yes' ) {
-			$total = $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('page', 'post')" );
+			$total = semantria_get_unprocessed_post_count();
 			
 			echo( '
 				<p>Now that the Semantria Consumer Key and Consumer Secret have been inputted, you are now ready to perform the data injestion.  This process will send all current Posts to Semantria for processing.</p>

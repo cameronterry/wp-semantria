@@ -106,7 +106,7 @@
         /**
          * Todo: Add support for custom Post Types.  This will require a front-end component too.
          */
-		$post_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish'AND post_type IN('post', 'page') ORDER BY ID LIMIT $offset, $count" );
+		$post_ids = semantria_get_unprocessed_post_ids( $offset, $count );
 		
 		if ( count( $post_ids ) == 0 ) {
 			semantria_ingestion_complete();

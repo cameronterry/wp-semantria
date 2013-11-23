@@ -14,6 +14,20 @@
 		}
 	}
 
+	function semantria_get_unprocessed_post_count() {
+		global $wpdb;
+
+		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
+		return $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID" );
+	}
+
+	function semantria_get_unprocessed_post_ids( $offset, $count ) {
+		global $wpdb;
+
+		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
+		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID LIMIT %d, %d", $offset, $count ) );
+	}
+
 	/**
 	 * When a new entity is provided from the Semantria results, this method
 	 * is used to create the taxonomy within WordPress for use.
