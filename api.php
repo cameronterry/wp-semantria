@@ -201,16 +201,37 @@
 		}
 	}
 
+	/**
+	 * Removes the CRON job from the WordPress schedule so that it does not
+	 * execute.
+	 *
+	 * @uses wp_clear_scheduled_hook() WordPress API for removing a schedule hook from CRON.
+	 */
 	function semantria_cron_clear() {
 		wp_clear_scheduled_hook( 'semantria_cron_job' );
 	}
 
+	/**
+	 * Creates a CRON job on the WordPress schedule to execute Semantria
+	 * taxonomy and term processing.
+	 *
+	 * @uses wp_next_scheduled() WordPress API for getting the next scheduled instance of a schedule hook.
+	 * @uses wp_schedule_event() WordPress API for scheduling a new instance of a schedule hook.
+	 */
 	function semantria_cron_create() {
 		if ( false === wp_next_scheduled( 'semantria_cron_job' ) ) {
 			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
 		}
 	}
 
+	/**
+	 * Retrieves the Semantria supplied information from the Queue table
+	 * for use in evaluation or taxonomy and term creation.  The data is
+	 * restored to it's object state and not returned as a String.
+	 * 
+	 * @global object $wpdb The WordPress Database object.
+	 * @param string $semantria_queue_id The Semantria Queue identifier used to retrieve the data record.
+	 */
 	function semantria_get_data( $semantria_queue_id ) {
         global $wpdb;
         
@@ -271,6 +292,12 @@
 		}
 	}
 
+	/**
+	 * Retrieve the number of Posts and Pages within this current 
+	 * installation which are not on the Semantria Queue.
+	 *
+	 * @global object $wpdb The WordPress Database object.
+	 */
 	function semantria_get_unprocessed_post_count() {
 		global $wpdb;
 
@@ -278,6 +305,15 @@
 		return $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID" );
 	}
 
+	/**
+	 * Retrieve a list of post ids of Posts and Pages which are not
+	 * currently on the Semantria Queue.  Used primarily to identify
+	 * which Posts are to be added and then process on the Queue.
+	 *
+	 * @global object $wpdb The WordPress Database object.
+	 * @param int $offset The starting record to be retrieved.
+	 * @param int $count The number of records after the starting record to be retrieved.
+	 */
 	function semantria_get_unprocessed_post_ids( $offset, $count ) {
 		global $wpdb;
 
@@ -285,6 +321,18 @@
 		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID LIMIT %d, %d", $offset, $count ) );
 	}
 
+	/**
+	 * Takes a Queued record and processes the document to build the
+	 * taxonomy and terms from Semantria and then marks the Queued
+	 * record as "completed".
+	 *
+	 * @global object $wpdb The WordPress Database object.
+	 * @param int $post_id WordPress Post ID.
+	 * @param string $semantria_queue_id Semantria Queue ID for making the API call to Semantria.
+	 * @uses semantria_get_data() Retrieves the Semantria data from the Queue record.
+	 * @uses semantria_process_document_data() Takes the Semantria data and creates the taxonomies and terms.
+	 * @uses semantria_queue_complete() Marks the Queue record as "Completed".
+	 */
 	function semantria_process_document( $post_id, $semantria_queue_id ) {
 		global $wpdb;
 		
@@ -296,6 +344,15 @@
         }
 	}
     
+    /**
+     * Takes the Semantria data and processes the "themes" which are
+     * to be turned into WordPress tags and processes "entities"
+     * which are turned into new taxonomies and terms.
+     *
+     * @param int $post_id WordPress Post ID.
+     * @param object $data Unserialise JSON structure from Semantria API.
+     * @uses semantria_process_terms() Takes a set of terms from the Semantria data to create the relevant taxonomies.
+     */
     function semantria_process_document_data( $post_id, $data ) {
         if ( array_key_exists( 'themes', $data ) && empty( $data['themes'] ) == false ) {
             semantria_process_terms( $post_id, $data['themes'], true );
@@ -306,6 +363,14 @@
         }
     }
 	
+	/**
+	 * Takes each Queue record marked as "processing" and actually
+	 * performs the processing of the Queue data.  Used by the CRON
+	 * job primarily.
+	 * 
+	 * @global object $wpdb The WordPress Database object.
+	 * @uses semantria_process_document() For a specific Queue record and Post ID, creates the taxonomies and terms from the Semantria API response.
+	 */
 	function semantria_process_queue() {
 		global $wpdb;
 		
@@ -433,6 +498,16 @@
 		}
 	}
 
+	/**
+	 * Performs the parallel insert on the Term Relationships table within
+	 * WordPress into the Semantria version so we can store Sentiment score
+	 * and other useful information later on.
+	 * 
+	 * @global object $wpdb The WordPress Database object.
+	 * @param string $post_id WordPress Post ID
+	 * @param string $term_id WordPress Term ID.
+	 * @param float $sentiment A number which indicates the positive, negative or neutrality of the term in relation to the document.
+	 */
 	function semantria_set_post_term_insert( $post_id, $term_id, $sentiment ) {
 		global $wpdb;
 
@@ -456,6 +531,14 @@
         return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped', 'expired', 'requeue' ) );
     }
 
+    /**
+     * Checks to see if a specific Taxonomy exists within the Semantria
+     * taxonomy table.  This is to ensure there are no duplicates when
+     * the plugin creates the WordPress taxonomies.
+     * 
+     * @global object $wpdb The WordPress Database object.
+	 * @param string $name The name of the taxonomy to check in the database.
+     */
 	function semantria_taxonomy_exists( $name ) {
 		global $wpdb;
 		
@@ -465,6 +548,12 @@
 		return $count > 0;
 	}
 
+	/**
+	 * Takes a Semantria Taxonomy Name and generates a friendly name
+	 * to be used as the taxonomy slug.
+	 * 
+	 * @param string $taxonomy_friendly_name_plural Plural version of the taxonomy name (Entity Type in Semantria parlance).
+	 */
 	function semantria_taxonomy_name( $taxonomy_friendly_name_plural ) {
 		return 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
 	}
