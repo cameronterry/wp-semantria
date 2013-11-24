@@ -10,6 +10,8 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 WordPress plugin for integrating with Semantria to generate custom taxonomies.
 
+Author's word, "I always strive to make the best than I can but live resolutely in the knowledge than I have much more to learn from you than you from I." 
+
 == Description ==
 
 Simple plugin that allows you to connect to your [Semantria](http://semantria.com/) API account to WordPress to generate tags and custom taxonomies for your Posts.
@@ -21,6 +23,18 @@ Simple plugin that allows you to connect to your [Semantria](http://semantria.co
 4. Click "Perform Data Ingestion" and then make a cup of tea :-)
 
 == Changelog ==
+
+= 0.2 =
+* Brand new Queues page which shows table of documents being processed.
+* New "Evaluate" screen where you can hand pick the Semantria terms for use.
+* Choose a "Mode" - Automatic (let Semantria work quietly in the background unaided) and Manual (take full control and handpick the terms you want).
+* [Improvement] Data ingestion can now be performed initially and later (for example, if the plugin is deactivated for a period of time.)
+* [Improvement] Loading icon added to indicate something is happening on data ingestion.
+* [Bug Fix] AJAX calls now check for Nonces.
+* [Bug Fix] No longer spits out IDs instead of the actual term name.
+* [Bug Fix] Settings page now displays a confirmation message when saved.
+* Various performance improvements.
+* Forker's rejoice - comments and refactoring changes so that you can better figure out what's going on!
 
 = 0.1 =
 * Initial release.
