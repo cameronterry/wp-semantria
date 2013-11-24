@@ -265,7 +265,6 @@ Author URI: https://github.com/cameronterry/
 	}
 	
 	if ( is_admin() ) {
-		/* Activation Hooks */
 		register_activation_hook( __FILE__, 'semantria_activation_hook' );
 		register_deactivation_hook( __FILE__, 'semantria_deactivation_hook' );
 		

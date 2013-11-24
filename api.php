@@ -318,7 +318,13 @@
 			
 			if ( array_key_exists( 'entities', $data ) && empty( $data['entities'] ) == false ) {
 				foreach ( $data['entities'] as $entity ) {
-					if ( array_key_exists( 'entity_type', $entity ) ) {
+					/**
+					 * Safety check - make sure that the Entity Type field is present
+					 * so that we can actually use it to create the taxonomy.  Also we
+					 * make sure that Quote is filtered out as it's not really suited
+					 * as a taxonomy.
+					 */
+					if ( array_key_exists( 'entity_type', $entity ) && 'quote' !== strtolower( $entity['entity_type'] ) ) {
 						semantria_create_taxonomy( $entity['entity_type'] );
 					}
 				}
@@ -378,7 +384,6 @@
 			if ( array_key_exists( 'entity_type', $entity ) || $is_tag ) {
 				
 				if ( $is_tag == false && strtolower( $entity['entity_type'] ) == 'quote' ) {
-					update_post_meta( $post_id, 'semantria_quote', $entity['title'] );
 					continue;
 				}
 				
