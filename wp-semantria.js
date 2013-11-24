@@ -39,7 +39,9 @@ jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=
                         description : 'Hover over to view the terms in the text.',
                         item_title : 'Entities',
                         item_type : 'entity',
-                        items : json.entities
+                        items : jQuery.grep( json.entities, function ( entity, i ) {
+                            return ( 'quote' !== entity.entity_type.toLowerCase() );
+                        } )
                     } );
                     
                     /**
