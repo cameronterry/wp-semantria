@@ -231,6 +231,7 @@ jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=
 				e.stopPropagation();
 				
 				jQuery( this ).attr( 'disabled', 'disabled' );
+                jQuery( '#ltlLoading', '.wp-semantria-content .loader-container' ).css( 'display', 'block' );
 				
 				wp_semantria_ajax_handler( 0 );
 			} );

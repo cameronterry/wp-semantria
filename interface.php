@@ -270,10 +270,19 @@
 		if ( get_option( 'semantria_consumer_key', null ) !== null && $total > 0 ) {
 			echo( '
         				<p>There are currently Posts and / or Pages which have not been processed by Semantria.  This process will send all current Posts to Semantria for processing.</p>
-        				<input id="cmdPerformDataIngestion" name="performDataIngestion" class="button-primary" type="button" value="Perform Data Ingestion" />
-        				<span id="ltlCurrentPosition" style="font-weight:bold;padding-left:7px;">0</span>
-        				of
-        				<span id="ltlTotalRecords" style="font-weight:bold;">' . $total . '</span>
+        				<div class="button-container">
+                            <input id="cmdPerformDataIngestion" name="performDataIngestion" class="button-primary" type="button" value="Perform Data Ingestion" />
+                        </div>
+                        <div class="loader-container">
+                            <div class="counter">
+                				<span id="ltlCurrentPosition" style="font-weight:bold;padding-left:7px;">0</span>
+                				of
+                				<span id="ltlTotalRecords" style="font-weight:bold;">' . $total . '</span>
+                            </div>
+                            <div id="ltlLoading" class="loader">
+                                <img alt="Loading" src="' . site_url( '/wp-includes/images/wpspin.gif' ) . '" />
+                            </div>
+                        </div>
                         <input id="hdnIngestionNonce" type="hidden" value="' . wp_create_nonce( 'wp_semantria_ingestion_security' ) . '" />
     				</form>
     			</div>

@@ -97,6 +97,30 @@
      */
     .wp-semantria-content {}
 
+        .wp-semantria-content .button-container {
+            float:left;
+            line-height:30px;
+        }
+
+        .wp-semantria-content .loader-container {
+            float:left;
+            line-height:30px;
+            padding-left:14px;
+        }
+
+            .wp-semantria-content .loader-container div {
+                float:left;
+                line-height:30px;
+            }
+
+            .wp-semantria-content .loader-container .counter {
+            }
+
+            .wp-semantria-content .loader-container .loader {
+                display:none;
+                padding:3px 0 0 7px;
+            }
+
         .wp-semantria-content .tablenav-pages {}
 
             .wp-semantria-content .tablenav-pages .current {
