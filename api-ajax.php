@@ -58,7 +58,58 @@
     }
     
     /**
+     * This is the AJAX call used to perform the initial ingestion once the plugin
+     * has a consumer key and consumer secret for Semantria provided.  Currently,
+     * this plugin will take all standard Page and Post type records and submit
+     * them to Semantria.
      * 
+     * Support for custom post types is currently not available.
+     * 
+     * @uses semantria_commit_document() Semantria method for sending a document to Semantria for processing.
+     * @uses semantria_ingestion_complete() Semantria method for completing the ingestion process.
+     * @uses get_post_meta() WordPress API for retrieving metadata for a specific post.
+     * @uses wp_cache_flush() WordPress API for flushing WordPress' inbuilt cache.
+     */
+    function semantria_ajax_ingest_all() {
+        global $wpdb;
+        
+        check_ajax_referer( 'wp_semantria_ingestion_security', 'security' );
+
+        set_time_limit( 600 );
+        
+        $offset = intval( $_POST['offset'] );
+        $count = 100;
+        
+        /**
+         * Todo: Add support for custom Post Types.  This will require a front-end component too.
+         */
+        $post_ids = semantria_get_unprocessed_post_ids( $offset, $count );
+        
+        if ( count( $post_ids ) == 0 ) {
+            semantria_ingestion_complete();
+        }
+        else if ( count( $post_ids ) < $count ) {
+            foreach( $post_ids as $post_id ) {
+                semantria_commit_document( $post_id );
+            }
+            
+            semantria_ingestion_complete();
+        }
+        else {
+            foreach( $post_ids as $post_id ) {
+                semantria_commit_document( $post_id );
+            }
+            
+            echo( $offset + $count );
+        }
+        
+        wp_cache_flush();
+        die();
+    }
+
+    /**
+     * Saves the options chosen in the Evaluate screen where a user manually
+     * picks the taxonomy terms which are to be used.
      */
     function semantria_ajax_save() {
         check_ajax_referer( 'wp_semantria_save_security', 'security' );
@@ -79,56 +130,6 @@
         
         die();
     }
-    
-    /**
-	 * This is the AJAX call used to perform the initial ingestion once the plugin
-     * has a consumer key and consumer secret for Semantria provided.  Currently,
-     * this plugin will take all standard Page and Post type records and submit
-     * them to Semantria.
-     * 
-     * Support for custom post types is currently not available.
-	 * 
-     * @uses semantria_commit_document() Semantria method for sending a document to Semantria for processing.
-     * @uses semantria_ingestion_complete() Semantria method for completing the ingestion process.
-	 * @uses get_post_meta() WordPress API for retrieving metadata for a specific post.
-	 * @uses wp_cache_flush() WordPress API for flushing WordPress' inbuilt cache.
-	 */
-    function semantria_ajax_ingest_all() {
-		global $wpdb;
-		
-        check_ajax_referer( 'wp_semantria_ingestion_security', 'security' );
-
-		set_time_limit( 600 );
-		
-		$offset = intval( $_POST['offset'] );
-		$count = 100;
-		
-        /**
-         * Todo: Add support for custom Post Types.  This will require a front-end component too.
-         */
-		$post_ids = semantria_get_unprocessed_post_ids( $offset, $count );
-		
-		if ( count( $post_ids ) == 0 ) {
-			semantria_ingestion_complete();
-		}
-		else if ( count( $post_ids ) < $count ) {
-			foreach( $post_ids as $post_id ) {
-				semantria_commit_document( $post_id );
-			}
-			
-			semantria_ingestion_complete();
-		}
-		else {
-			foreach( $post_ids as $post_id ) {
-				semantria_commit_document( $post_id );
-			}
-			
-			echo( $offset + $count );
-		}
-		
-		wp_cache_flush();
-		die();
-	}
     
     /**
      * Progresses a Queue record from one part of the Semantria process to the

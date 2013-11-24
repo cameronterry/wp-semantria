@@ -1,115 +1,5 @@
 <?php
 
-	function semantria_taxonomy_name( $taxonomy_friendly_name_plural ) {
-		return 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
-	}
-
-	function semantria_cron_clear() {
-		wp_clear_scheduled_hook( 'semantria_cron_job' );
-	}
-
-	function semantria_cron_create() {
-		if ( false === wp_next_scheduled( 'semantria_cron_job' ) ) {
-			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
-		}
-	}
-
-	function semantria_get_unprocessed_post_count() {
-		global $wpdb;
-
-		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
-		return $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID" );
-	}
-
-	function semantria_get_unprocessed_post_ids( $offset, $count ) {
-		global $wpdb;
-
-		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
-		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID LIMIT %d, %d", $offset, $count ) );
-	}
-
-	/**
-	 * When a new entity is provided from the Semantria results, this method
-	 * is used to create the taxonomy within WordPress for use.
-	 * 
-	 * @param string $name The name to be given to the new taxonomy.
-	 * @uses Inflector To pluralise the taxonomy name.
-	 * @uses register_taxonomy() WordPress API for creating new taxonomies.
-	 */
-	function semantria_create_taxonomy( $name ) {
-		global $wpdb;
-		
-		$inflector = new Inflector();
-		$plural = $inflector->pluralize( $name );
-		
-		/**
-		 * Regex taxonomies are currently ignored as it's plucking out email addresses and the such
-		 * which great, but could pose a security risk or expose someone's email address to a web
-		 * crawler by spammers (as one example).
-		 * 
-		 * Needs a bit more thought and care before exposing it to the public facing side.
-		 */
-		if ( semantria_taxonomy_exists( $name ) == false && strtolower( $name ) != 'regex' ) {
-			$wpdb->insert(
-				$wpdb->prefix . 'semantria_taxonomy',
-				array(
-					'name' => $name,
-					'name_plural' => $plural
-				)
-			);
-		}
-	}
-	
-	function semantria_taxonomy_exists( $name ) {
-		global $wpdb;
-		
-		$table_name = $wpdb->prefix . 'semantria_taxonomy';
-		$count = intval( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(semantria_taxonomy_id) FROM $table_name WHERE name = %s", $name ) ) );
-		
-		return $count > 0;
-	}
-	
-	/**
-	 * To be used in place of wp_set_post_term() as this method provides a
-	 * mechanism to add in sentiment value.  Note that this method treats
-	 * new terms as additions instead of replacements.
-	 * 
-	 * @param int $post_id WordPress Post ID.
-	 * @param string $term New term to associate with the given Post ID.
-	 * @param string $taxonomy The Taxonomy from which the term originates.
-	 * @param float $sentiment Semantria's sentiment analysis of the word in context of the article.
-	 */
-	function semantria_set_post_term( $post_id, $term, $taxonomy, $sentiment ) {
-		$term_id = -1;
-		
-		if ( $taxonomy == 'post_tag' ) {
-			$set_term_result = wp_set_post_terms( $post_id, $term, $taxonomy, true );
-			$term_id = $set_term_result[0];
-		}
-		else {
-			$term_details = get_term_by( 'name', $term, $taxonomy );
-			$set_term_result = wp_set_post_terms( $post_id, $term_details->name, $taxonomy, true );
-			$term_id = $set_term_result[0];
-		}
-		
-		if ( $set_term_result !== false ) {
-			semantria_set_post_term_insert( $post_id, $term_id, $sentiment );
-		}
-	}
-
-	function semantria_set_post_term_insert( $post_id, $term_id, $sentiment ) {
-		global $wpdb;
-
-		$wpdb->insert(
-			$wpdb->prefix . 'term_relationships_semantria',
-			array(
-				'object_id' => $post_id,
-				'term_taxonomy_id' => $term_id,
-				'sentiment' => $sentiment
-			)
-		);
-	}
-	
 	/**
 	 * Adds a new record on the Semantria Queue table which will be used
 	 * by the Cron job to retrieve the analysis later on once Semantria is
@@ -135,46 +25,7 @@
 			)
 		);
 	}
-	
-	/**
-	 * Updates the Semantria Queue table to tell us that the specified
-	 * item on the queue has expired (exceeded the 24-hours from it's
-	 * initial send to the Semantria's web service).
-	 * 
-	 * @uses semantria_queue_complete Performs the actual database UPDATE statement, as this is an type of "complete" status.
-	 */
-	function semantria_queue_expire( $semantria_id ) {
-		semantria_queue_complete( $semantria_id, 'expired' );
-	}
 
-	/**
-	 * Updates the Semantria Queue table to tell us that a processed
-	 * document has been retrieved and the Entities assigned within
-	 * WordPress.
-	 * 
-	 * @global object $wpdb The WordPress Database object.
-	 * @param string $semantria_id The Queue ID provided in the call to Semantria.
-	 * @uses do_action() Calls 'semnatria_queue_complete' hook updated the Semantria Queue record.
-	 */
-	function semantria_queue_complete( $semantria_id, $status = 'complete' ) {
-		global $wpdb;
-		
-		$now = new DateTime();
-		
-		$wpdb->update(
-			$wpdb->prefix . 'semantria_queue',
-			array(
-				'closed' => $now->format( 'Y-m-d H:i:s' ),
-				'status' => $status
-			),
-			array(
-				'semantria_id' => $semantria_id
-			)
-		);
-		
-		do_action( 'semnatria_queue_complete', $semantria_id );
-	}
-	
 	/**
 	 * Assembles the necessary data from a given Post ID which is to
 	 * be sent to Semantria.
@@ -271,8 +122,96 @@
             $wpdb->query( $wpdb->prepare( "DELETE FROM $semantria_term_table WHERE object_id = %d", $post_id ) );
         }
     }
-	
-    function semantria_get_data( $semantria_queue_id ) {
+
+    /**
+	 * Using the Post ID, assembles the information needed for a
+	 * given post (Posts, Pages, Custom Post Types) and then sends
+	 * the data to Semantria for processing.
+	 * 
+	 * This function also adds a record to the Semantria Queue
+	 * table as well as update the Post Metadata to link back to.
+	 * 
+	 * @global object $semantria_session Semantria PHP Wrapper Session object.
+	 * @param int $post_id WordPress Post ID
+	 * @uses semantria_add_queue() Adds the document to the Semantria queue if successfully sent.
+	 * @uses update_post_meta() WordPress API call to add the Semantria ID to the Post Metadata.
+	 */
+	function semantria_commit_document( $post_id ) {
+		global $semantria_session;
+		
+		$document = semantria_build_document( $post_id );
+		$queue_type = 'document';
+		
+		/**
+		 * If the document returned is null, then that means the post->content
+		 * field was empty and thus no processing can be performed.
+		 */
+		if ( $document == null ) {
+			return null;
+		}
+		
+		if ( array_key_exists( 'documents', $document ) ) {
+			$status = $semantria_session->queueCollection( $document );
+			$queue_type = 'collection';
+		}
+		else {
+			$status = $semantria_session->queueDocument( $document );
+		}
+		
+		if ( $status == 202 ) {
+			semantria_add_queue( $document['id'], $post_id, $queue_type );
+			update_post_meta( $post_id, 'semantria_queue_id', $document['id'] );
+			
+			return $document['id'];
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * When a new entity is provided from the Semantria results, this method
+	 * is used to create the taxonomy within WordPress for use.
+	 * 
+	 * @param string $name The name to be given to the new taxonomy.
+	 * @uses Inflector To pluralise the taxonomy name.
+	 * @uses register_taxonomy() WordPress API for creating new taxonomies.
+	 */
+	function semantria_create_taxonomy( $name ) {
+		global $wpdb;
+		
+		$inflector = new Inflector();
+		$plural = $inflector->pluralize( $name );
+		
+		/**
+		 * Regex taxonomies are currently ignored as it's plucking out email addresses and the such
+		 * which great, but could pose a security risk or expose someone's email address to a web
+		 * crawler by spammers (as one example).
+		 * 
+		 * Needs a bit more thought and care before exposing it to the public facing side.
+		 */
+		if ( semantria_taxonomy_exists( $name ) == false && strtolower( $name ) != 'regex' ) {
+			$wpdb->insert(
+				$wpdb->prefix . 'semantria_taxonomy',
+				array(
+					'name' => $name,
+					'name_plural' => $plural
+				)
+			);
+		}
+	}
+
+	function semantria_cron_clear() {
+		wp_clear_scheduled_hook( 'semantria_cron_job' );
+	}
+
+	function semantria_cron_create() {
+		if ( false === wp_next_scheduled( 'semantria_cron_job' ) ) {
+			wp_schedule_event( time(), 'semantria_five_mins', 'semantria_cron_job' );
+		}
+	}
+
+	function semantria_get_data( $semantria_queue_id ) {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'semantria_queue';
@@ -284,7 +223,7 @@
         
 		return unserialize( $data );
     }
-    
+
 	/**
 	 * Connects to the Semantria servers to retrieve a single document
 	 * which was sent for analysis.
@@ -331,7 +270,21 @@
 			}
 		}
 	}
-	
+
+	function semantria_get_unprocessed_post_count() {
+		global $wpdb;
+
+		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
+		return $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID" );
+	}
+
+	function semantria_get_unprocessed_post_ids( $offset, $count ) {
+		global $wpdb;
+
+		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
+		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID LIMIT %d, %d", $offset, $count ) );
+	}
+
 	function semantria_process_document( $post_id, $semantria_queue_id ) {
 		global $wpdb;
 		
@@ -412,54 +365,88 @@
 		
 		do_action( 'semantria_process_terms_complete', $post_id, $data );
 	}
+
+	/**
+	 * Updates the Semantria Queue table to tell us that a processed
+	 * document has been retrieved and the Entities assigned within
+	 * WordPress.
+	 * 
+	 * @global object $wpdb The WordPress Database object.
+	 * @param string $semantria_id The Queue ID provided in the call to Semantria.
+	 * @uses do_action() Calls 'semnatria_queue_complete' hook updated the Semantria Queue record.
+	 */
+	function semantria_queue_complete( $semantria_id, $status = 'complete' ) {
+		global $wpdb;
+		
+		$now = new DateTime();
+		
+		$wpdb->update(
+			$wpdb->prefix . 'semantria_queue',
+			array(
+				'closed' => $now->format( 'Y-m-d H:i:s' ),
+				'status' => $status
+			),
+			array(
+				'semantria_id' => $semantria_id
+			)
+		);
+		
+		do_action( 'semnatria_queue_complete', $semantria_id );
+	}
 	
 	/**
-	 * Using the Post ID, assembles the information needed for a
-	 * given post (Posts, Pages, Custom Post Types) and then sends
-	 * the data to Semantria for processing.
+	 * Updates the Semantria Queue table to tell us that the specified
+	 * item on the queue has expired (exceeded the 24-hours from it's
+	 * initial send to the Semantria's web service).
 	 * 
-	 * This function also adds a record to the Semantria Queue
-	 * table as well as update the Post Metadata to link back to.
-	 * 
-	 * @global object $semantria_session Semantria PHP Wrapper Session object.
-	 * @param int $post_id WordPress Post ID
-	 * @uses semantria_add_queue() Adds the document to the Semantria queue if successfully sent.
-	 * @uses update_post_meta() WordPress API call to add the Semantria ID to the Post Metadata.
+	 * @uses semantria_queue_complete Performs the actual database UPDATE statement, as this is an type of "complete" status.
 	 */
-	function semantria_commit_document( $post_id ) {
-		global $semantria_session;
+	function semantria_queue_expire( $semantria_id ) {
+		semantria_queue_complete( $semantria_id, 'expired' );
+	}
+
+	/**
+	 * To be used in place of wp_set_post_term() as this method provides a
+	 * mechanism to add in sentiment value.  Note that this method treats
+	 * new terms as additions instead of replacements.
+	 * 
+	 * @param int $post_id WordPress Post ID.
+	 * @param string $term New term to associate with the given Post ID.
+	 * @param string $taxonomy The Taxonomy from which the term originates.
+	 * @param float $sentiment Semantria's sentiment analysis of the word in context of the article.
+	 */
+	function semantria_set_post_term( $post_id, $term, $taxonomy, $sentiment ) {
+		$term_id = -1;
 		
-		$document = semantria_build_document( $post_id );
-		$queue_type = 'document';
-		
-		/**
-		 * If the document returned is null, then that means the post->content
-		 * field was empty and thus no processing can be performed.
-		 */
-		if ( $document == null ) {
-			return null;
-		}
-		
-		if ( array_key_exists( 'documents', $document ) ) {
-			$status = $semantria_session->queueCollection( $document );
-			$queue_type = 'collection';
-		}
-		else {
-			$status = $semantria_session->queueDocument( $document );
-		}
-		
-		if ( $status == 202 ) {
-			semantria_add_queue( $document['id'], $post_id, $queue_type );
-			update_post_meta( $post_id, 'semantria_queue_id', $document['id'] );
-			
-			return $document['id'];
+		if ( $taxonomy == 'post_tag' ) {
+			$set_term_result = wp_set_post_terms( $post_id, $term, $taxonomy, true );
+			$term_id = $set_term_result[0];
 		}
 		else {
-			return null;
+			$term_details = get_term_by( 'name', $term, $taxonomy );
+			$set_term_result = wp_set_post_terms( $post_id, $term_details->name, $taxonomy, true );
+			$term_id = $set_term_result[0];
+		}
+		
+		if ( $set_term_result !== false ) {
+			semantria_set_post_term_insert( $post_id, $term_id, $sentiment );
 		}
 	}
-    
-    /**
+
+	function semantria_set_post_term_insert( $post_id, $term_id, $sentiment ) {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->prefix . 'term_relationships_semantria',
+			array(
+				'object_id' => $post_id,
+				'term_taxonomy_id' => $term_id,
+				'sentiment' => $sentiment
+			)
+		);
+	}
+	
+	/**
      * Used to validate if the provided string is a valid Status
      * type for the Semantria plugin.
      * 
@@ -468,5 +455,18 @@
     function semantria_status_is_valid( $status ) {
         return in_array( $status, array( 'processing', 'queued', 'complete', 'stopped', 'expired', 'requeue' ) );
     }
+
+	function semantria_taxonomy_exists( $name ) {
+		global $wpdb;
+		
+		$table_name = $wpdb->prefix . 'semantria_taxonomy';
+		$count = intval( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(semantria_taxonomy_id) FROM $table_name WHERE name = %s", $name ) ) );
+		
+		return $count > 0;
+	}
+
+	function semantria_taxonomy_name( $taxonomy_friendly_name_plural ) {
+		return 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
+	}
 
 ?>
