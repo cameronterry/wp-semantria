@@ -2,7 +2,7 @@
 /**
 Plugin Name: WP Semantria
 Plugin URI: https://github.com/cameronterry/wp-semantria
-Description: This plugin connects with your Semantria API account to create new taxonomies from unstructure Post and Page content.  In addition, each post / taxonomy link contains a sentiment score so you can pick additional stories that are positive or negative.
+Description: This plugin connects with your Semantria API account to create new taxonomies from unstructure Post and Page content.
 Version: 0.2.0
 Author: Cameron Terry
 Author URI: https://github.com/cameronterry/
