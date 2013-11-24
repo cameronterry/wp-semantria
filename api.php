@@ -555,7 +555,8 @@
 	 * @param string $taxonomy_friendly_name_plural Plural version of the taxonomy name (Entity Type in Semantria parlance).
 	 */
 	function semantria_taxonomy_name( $taxonomy_friendly_name_plural ) {
-		return 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
+		$slug = 'semantria-' . str_replace( ' ', '', strtolower( $taxonomy_friendly_name_plural ) );
+		return apply_filters( 'semantria_taxonomy_name', $slug );
 	}
 
 ?>
