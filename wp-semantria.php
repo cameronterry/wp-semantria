@@ -19,7 +19,7 @@ Author URI: https://github.com/cameronterry/
 	
 	function semantria_admin_enqueue( $hook_suffix ) {
         if ( $hook_suffix == 'wp-semantria_page_semantria-settings' || $hook_suffix == 'toplevel_page_semantria-queue' ) {
-			wp_register_script( 'handlebars-js', '//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js' );
+			wp_register_script( 'handlebars-js', plugins_url( 'assets/js/handlebars.js', __FILE__ ) );
             wp_register_script( 'wp-semantria', plugins_url( 'wp-semantria.js', __FILE__ ), array( 'jquery', 'handlebars-js' ) );
             wp_register_style( 'wp-semantria-css', plugins_url( 'assets/css/wp-semantria.css', __FILE__ ) );
             
