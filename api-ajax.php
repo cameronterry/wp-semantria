@@ -152,7 +152,7 @@
             echo( 'error' );
             die();
         }
-        
+
         /**
          * Handle Processing for the document - this is for Documents in the queue which
          * are sent to Semantria but haven't called the API service to see if the Document
@@ -164,8 +164,20 @@
         }
 
         if ( 'processing' == $new_status ) {
-            semantria_get_document( $post_id, $semantria_queue_id );
-            $echo_value = 'done';
+            /**
+             * If the task is processing then we must get the document first and make sure it
+             * has not expired before attempting to call the Semantria API.
+             */
+            $semantria_document = semantria_get_queue_item( $semantria_queue_id );
+            
+            if ( false === semantria_has_expired( $semantria_document->added ) ) {
+                semantria_get_document( $post_id, $semantria_queue_id );
+                $echo_value = 'done';
+            }
+            else {
+                semantria_queue_expire( $semantria_queue_id );
+                $echo_value = 'expired';
+            }
         }
 
         if ( 'requeue' == $new_status ) {

@@ -293,6 +293,19 @@
 	}
 
 	/**
+	 * Retrieve the specified record from the Semantria Queue table.
+	 *
+	 * @global object $wpdb The WordPress Database object.
+	 * @param string $semantria_queue_id Semantria Queue ID to search for in the Queue table.
+	 */
+	function semantria_get_queue_item( $semantria_queue_id ) {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'semantria_queue';
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE semantria_id = %s", $semantria_queue_id ) );
+	}
+
+	/**
 	 * Retrieve the number of Posts and Pages within this current 
 	 * installation which are not on the Semantria Queue.
 	 *
@@ -319,6 +332,22 @@
 
 		$semantria_queue_table = $wpdb->prefix . 'semantria_queue';
 		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status LIKE 'publish' AND post_type IN('post', 'page') AND post_content != '' AND ID NOT IN(SELECT post_id FROM $semantria_queue_table) ORDER BY ID LIMIT %d, %d", $offset, $count ) );
+	}
+
+	/**
+	 * A function to determine if the document date for the Semantria 
+	 * Queue item has past 24 hours.  If it has TRUE is returned as the
+	 * Semantria API will error.  Under 24 hours, this function will
+	 * return FALSE meaning it is safe to continue with the call to
+	 * Semantria.
+	 * 
+	 * @param string Semantria Queue Item added (creation) date.
+	 */
+	function semantria_has_expired( $document_date ) {
+		$item_date = new DateTime( $document_date );
+		$now = new DateTime();
+		
+		return ( 1 <= $item_date->diff( $now )->d );
 	}
 
 	/**

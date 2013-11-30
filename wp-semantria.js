@@ -184,7 +184,11 @@ jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=
                     security : jQuery( '#hdnUpdateNonce', '.wrap.wp-semantria-content' ).val()
                 },
 				function ( status ) {
-                    if ( status == 'done' ) {
+                    if ( 'done' === status ) {
+                        setTimeout( function () { $row.fadeOut( 'slow' ); }, 250 );
+                    }
+                    else if ( 'expired' === status ) {
+                        alert( '"' + original_text + '" post for Semantria has expired.  If you still wish to process this document, it will have to be Requeued.' );
                         setTimeout( function () { $row.fadeOut( 'slow' ); }, 250 );
                     }
                     else {
