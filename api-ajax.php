@@ -77,13 +77,12 @@
 
         set_time_limit( 600 );
         
-        $offset = intval( $_POST['offset'] );
         $count = 100;
         
         /**
          * Todo: Add support for custom Post Types.  This will require a front-end component too.
          */
-        $post_ids = semantria_get_unprocessed_post_ids( $offset, $count );
+        $post_ids = semantria_get_unprocessed_post_ids( $count );
         
         if ( count( $post_ids ) == 0 ) {
             semantria_ingestion_complete();
