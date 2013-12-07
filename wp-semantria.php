@@ -3,7 +3,7 @@
 Plugin Name: WP Semantria
 Plugin URI: https://github.com/cameronterry/wp-semantria
 Description: This plugin connects with your Semantria API account to create new taxonomies from unstructure Post and Page content.
-Version: 0.2.2
+Version: 0.2.3
 Author: Cameron Terry
 Author URI: https://github.com/cameronterry/
  */

@@ -4,7 +4,7 @@ Donate link: https://github.com/cameronterry/wp-semantria
 Tags: semantria, taxonomy, terms, posts, tag, tagging, tags
 Requires at least: 3.5.1
 Tested up to: 3.8-beta1
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,9 @@ Simple plugin that allows you to connect to your [Semantria](http://semantria.co
 4. Click "Perform Data Ingestion" and then make a cup of tea :-)
 
 == Changelog ==
+
+= 0.2.3 =
+* [Bug Fix] Schoolboy error resolved which was causing the Data Ingestion to only pull through half at a time.
 
 = 0.2.2 =
 * [Bug Fix] Version numbers no longer having an identity crisis!
