@@ -4,7 +4,7 @@ Donate link: https://github.com/cameronterry/wp-semantria
 Tags: semantria, taxonomy, terms, posts, tag, tagging, tags
 Requires at least: 3.5.1
 Tested up to: 3.8-beta1
-Stable tag: 0.2.1
+Stable tag: 0.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,14 @@ Simple plugin that allows you to connect to your [Semantria](http://semantria.co
 
 == Changelog ==
 
-= 0.2 =
+= 0.2.2 =
+* [Bug Fix] Version numbers no longer having an identity crisis!
+* [Bug Fix] Queues page - clicking "Process" on an Expired Queued document no longer does nothing.
+
+= 0.2.1 =
+* Stopped using Cloudflare CDN and included Handlebars.js locally.
+
+= 0.2.0 =
 * Brand new Queues page which shows table of documents being processed.
 * New "Evaluate" screen where you can hand pick the Semantria terms for use.
 * Choose a "Mode" - Automatic (let Semantria work quietly in the background unaided) and Manual (take full control and handpick the terms you want).
@@ -36,5 +43,5 @@ Simple plugin that allows you to connect to your [Semantria](http://semantria.co
 * Various performance improvements.
 * Forker's rejoice - comments and refactoring changes so that you can better figure out what's going on!
 
-= 0.1 =
+= 0.1.0 =
 * Initial release.
