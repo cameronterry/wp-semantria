@@ -218,7 +218,14 @@ Author URI: https://github.com/cameronterry/
 		$current_version = '0.2.4';
 		$install_version = get_option( 'wp_semantria_version', false );
 
-		if ( $current_version !== $install_version ) {
+		if ( false === $install_version ) {
+			/**
+			 * This is give people a chance to change the table collation on
+			 * their own terms than solely trust the dbDelta function below.
+			 */
+			update_option( 'wp_semantria_version', '0.2.4' );
+		}
+		else if ( $current_version !== $install_version ) {
 			/**
 			 * Create a matching Term Relationship table that will allow us
 			 * to store the sentiment of each Content / Taxonomy link.
