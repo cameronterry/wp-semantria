@@ -3,8 +3,8 @@ Contributors: cameronterry
 Donate link: https://github.com/cameronterry/wp-semantria
 Tags: semantria, taxonomy, terms, posts, tag, tagging, tags
 Requires at least: 3.5.1
-Tested up to: 3.8-beta1
-Stable tag: 0.2.3
+Tested up to: 3.8
+Stable tag: 0.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,11 @@ Simple plugin that allows you to connect to your [Semantria](http://semantria.co
 4. Click "Perform Data Ingestion" and then make a cup of tea :-)
 
 == Changelog ==
+
+= 0.2.4 =
+* Added a database upgrade mechanism in case of future database changes.
+* Now ensure the creation of the Queue table is in UTF-8.  (Please note; the database check above will NOT alter the collation of the pre-existing table in case of compatibility issues.)
+* Checked against the final WordPress 3.8 release.
 
 = 0.2.3 =
 * [Bug Fix] Schoolboy error resolved which was causing the Data Ingestion to only pull through half at a time.
